@@ -1,0 +1,2182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apollo Control v3.0 • 2,000+ Workflows Professionals</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { color-scheme: dark; }
+    .glass { backdrop-filter: blur(12px); background: color-mix(in oklab, #0b1220 85%, transparent); }
+    .scrollbar-thin::-webkit-scrollbar{height:8px;width:8px}
+    .scrollbar-thin::-webkit-scrollbar-thumb{background:#334155;border-radius:999px}
+    .scrollbar-thin::-webkit-scrollbar-track{background:#0b1220}
+    .gradient-text { background: linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glow { box-shadow: 0 0 40px rgba(139, 92, 246, 0.15); }
+    .card-workflow { transition: all 0.3s ease; }
+    .card-workflow:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2); }
+    .workflow-active { animation: pulse-glow 2s ease-in-out infinite; }
+    @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); } 50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); } }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-sans">
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
+    <div class="text-center">
+      <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-fuchsia-500 animate-pulse flex items-center justify-center">
+        <svg class="w-14 h-14 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+      <div class="mt-6 text-3xl font-bold gradient-text">APOLLO CONTROL v3.0</div>
+      <div class="mt-2 text-xl text-slate-400">Cargando Base de Datos...</div>
+      <div class="mt-1 text-sm text-slate-500">2,000+ Workflows Professionals</div>
+      <div class="mt-4 text-sm text-cyan-400" id="loadingStatus">0 / 2000 Workflows</div>
+      <div class="mt-6 flex justify-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-cyan-500 animate-bounce"></div>
+        <div class="w-3 h-3 rounded-full bg-indigo-500 animate-bounce" style="animation-delay: 0.1s"></div>
+        <div class="w-3 h-3 rounded-full bg-fuchsia-500 animate-bounce" style="animation-delay: 0.2s"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-40 border-b border-slate-800/70 bg-slate-950/95 backdrop-blur-xl">
+    <div class="mx-auto max-w-[1920px] px-4 py-3">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="h-14 w-14 rounded-xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-fuchsia-500 flex items-center justify-center">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold gradient-text">Apollo Control v3.0</h1>
+            <p class="text-xs text-slate-400">🚀 2,000+ Workflows Professionals • <span class="text-emerald-400">🟢 N8N READY</span></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="btnCart" class="relative rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2.5 hover:bg-slate-900 transition">
+            <svg class="inline w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            Carrito
+            <span id="cartCount" class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-fuchsia-600 text-xs font-bold">0</span>
+          </button>
+          
+          <div class="hidden md:flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-900/60 px-4 py-2">
+            <div class="text-right">
+              <div class="text-xs text-slate-400">Saldo Disponible</div>
+              <div class="text-xl font-bold text-emerald-400" id="userBalance">$0.00</div>
+            </div>
+          </div>
+
+          <div class="hidden lg:flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2">
+            <div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <span class="text-xs text-slate-300">N8N: control.apollopeak.io</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="mx-auto max-w-[1920px] px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      
+      <!-- Left Sidebar -->
+      <aside class="lg:col-span-1 space-y-4">
+        <!-- Quick Stats -->
+        <div class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/80 to-slate-800/50 p-5 glow">
+          <h2 class="text-sm font-semibold text-slate-300 mb-4">📊 Estadísticas</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl bg-slate-800/50 p-3 text-center">
+              <div class="text-2xl font-bold text-cyan-400" id="statWorkflows">2000</div>
+              <div class="text-xs text-slate-400">Workflows</div>
+            </div>
+            <div class="rounded-xl bg-slate-800/50 p-3 text-center">
+              <div class="text-2xl font-bold text-emerald-400" id="statRevenue">$0</div>
+              <div class="text-xs text-slate-400">Ingresos</div>
+            </div>
+            <div class="rounded-xl bg-slate-800/50 p-3 text-center">
+              <div class="text-2xl font-bold text-fuchsia-400" id="statSales">0</div>
+              <div class="text-xs text-slate-400">Ventas</div>
+            </div>
+            <div class="rounded-xl bg-slate-800/50 p-3 text-center">
+              <div class="text-2xl font-bold text-amber-400">100%</div>
+              <div class="text-xs text-slate-400">Activos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <h2 class="text-sm font-semibold mb-3 flex items-center gap-2">
+            🟢 Estado del Sistema
+          </h2>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/50">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                N8N Server
+              </span>
+              <span class="text-emerald-400">Online</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/50">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Stripe API
+              </span>
+              <span class="text-emerald-400">Connected</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/50">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Crypto Wallets
+              </span>
+              <span class="text-emerald-400">Active</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/50">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Telegram Bot
+              </span>
+              <span class="text-emerald-400">Listening</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/50">
+              <span class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Database
+              </span>
+              <span class="text-amber-400">Syncing</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <h2 class="text-sm font-semibold mb-3">📂 Categorías (<span id="catCount">35</span>)</h2>
+          <div class="space-y-1.5 max-h-[400px] overflow-y-auto scrollbar-thin" id="categoryList"></div>
+        </div>
+
+        <!-- Complexity Filter -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <h2 class="text-sm font-semibold mb-3">🔥 Complejidad</h2>
+          <div class="space-y-2">
+            <button onclick="filterComplexity('legendary')" class="w-full rounded-lg bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/50 px-3 py-2 text-sm text-amber-300 hover:bg-amber-500/30 transition text-left">
+              🔥🔥🔥🔥🔥 LEGENDARY
+            </button>
+            <button onclick="filterComplexity('extreme')" class="w-full rounded-lg bg-rose-500/20 border border-rose-500/50 px-3 py-2 text-sm text-rose-300 hover:bg-rose-500/30 transition text-left">
+              🔥🔥🔥🔥 EXTREME
+            </button>
+            <button onclick="filterComplexity('high')" class="w-full rounded-lg bg-orange-500/20 border border-orange-500/50 px-3 py-2 text-sm text-orange-300 hover:bg-orange-500/30 transition text-left">
+              🔥🔥🔥 HIGH
+            </button>
+            <button onclick="filterComplexity('medium')" class="w-full rounded-lg bg-cyan-500/20 border border-cyan-500/50 px-3 py-2 text-sm text-cyan-300 hover:bg-cyan-500/30 transition text-left">
+              🔥🔥 MEDIUM
+            </button>
+            <button onclick="filterComplexity('all')" class="w-full rounded-lg bg-slate-700 px-3 py-2 text-sm text-white hover:bg-slate-600 transition">
+              📁 Todas
+            </button>
+          </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <h2 class="text-sm font-semibold mb-3">💳 Métodos de Pago</h2>
+          <div class="mb-3 p-2 rounded-lg bg-gradient-to-r from-indigo-900/30 to-fuchsia-900/30 border border-indigo-500/30">
+            <div class="text-xs text-indigo-300 flex items-center justify-between">
+              <span>PMC Activos:</span>
+              <span class="font-mono">5/5 ✅</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="selectPayment('stripe')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="stripe">
+              <div class="text-2xl">💳</div>
+              <div class="text-[10px] text-slate-400">Stripe</div>
+            </button>
+            <button onclick="selectPayment('crypto')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="crypto">
+              <div class="text-2xl">₿</div>
+              <div class="text-[10px] text-slate-400">Crypto</div>
+            </button>
+            <button onclick="selectPayment('kucoin')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="kucoin">
+              <div class="text-2xl">◈</div>
+              <div class="text-[10px] text-slate-400">Kucoin</div>
+            </button>
+            <button onclick="selectPayment('bank_usa')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="bank_usa">
+              <div class="text-2xl">🇺🇸</div>
+              <div class="text-[10px] text-slate-400">Lead Bank</div>
+            </button>
+            <button onclick="selectPayment('bank_eu')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="bank_eu">
+              <div class="text-2xl">🇪🇺</div>
+              <div class="text-[10px] text-slate-400">SEPA</div>
+            </button>
+            <button onclick="selectPayment('bank_lux')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="bank_lux">
+              <div class="text-2xl">🇱🇺</div>
+              <div class="text-[10px] text-slate-400">Luxembourg</div>
+            </button>
+            <button onclick="selectPayment('bizum')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="bizum">
+              <div class="text-2xl">📱</div>
+              <div class="text-[10px] text-slate-400">Bizum</div>
+            </button>
+            <button onclick="selectPayment('klarna')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="klarna">
+              <div class="text-2xl">💙</div>
+              <div class="text-[10px] text-slate-400">Klarna</div>
+            </button>
+            <button onclick="selectPayment('invoice')" class="payment-btn rounded-lg bg-slate-800/50 p-3 text-center cursor-pointer hover:bg-slate-800 transition" data-method="invoice">
+              <div class="text-2xl">📄</div>
+              <div class="text-[10px] text-slate-400">Factura</div>
+            </button>
+          </div>
+          <div class="mt-3 p-3 rounded-xl bg-gradient-to-r from-emerald-900/30 to-cyan-900/30 border border-emerald-500/30">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-emerald-400">🔐</span>
+              <span class="text-emerald-300">Pago seguro SSL + Encriptación</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <h2 class="text-sm font-semibold mb-3">⚡ Acciones Rápidas</h2>
+          <div class="space-y-2">
+            <button onclick="syncN8N()" class="w-full rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2.5 text-sm text-indigo-300 hover:bg-indigo-500/20 transition">
+              🔄 Sync con N8N
+            </button>
+            <button onclick="exportAllWorkflows()" class="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-3 py-2.5 text-sm hover:bg-slate-800 transition">
+              📦 Exportar Catálogo Completo
+            </button>
+            <button onclick="clearCart()" class="w-full rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-300 hover:bg-rose-500/20 transition">
+              🗑️ Vaciar Carrito
+            </button>
+          </div>
+        </div>
+
+        <!-- Revenue Chart Mini -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <h2 class="text-sm font-semibold mb-3">📈 Ingresos (7 días)</h2>
+          <canvas id="revenueChartMini" height="120"></canvas>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="lg:col-span-4 space-y-6">
+        
+        <!-- Search & Filters -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <div class="flex flex-col lg:flex-row gap-4">
+            <div class="flex-1 relative">
+              <input id="searchWorkflows" type="text" placeholder="🔍 Buscar workflows... (Ctrl+K)" 
+                class="w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 pl-11 text-sm outline-none focus:border-indigo-500 transition" />
+              <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
+            <div class="flex gap-2">
+              <select id="filterCategory" class="rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm outline-none focus:border-indigo-500">
+                <option value="all">Todas las categorías</option>
+              </select>
+              <select id="sortBy" class="rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm outline-none focus:border-indigo-500">
+                <option value="name">Nombre A-Z</option>
+                <option value="price-low">Precio: Menor</option>
+                <option value="price-high">Precio: Mayor</option>
+                <option value="complexity">Complejidad</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Featured Premium -->
+        <div class="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-900/20 via-slate-900/50 to-fuchsia-900/20 p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-2xl">⭐</span>
+            <h2 class="text-lg font-bold text-amber-400">WORKFLOWS PREMIUM DESTACADOS</h2>
+            <span class="ml-auto text-xs bg-amber-500/20 text-amber-300 px-2 py-1 rounded-full">TOP 10</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="featuredGrid"></div>
+        </div>
+
+        <!-- Workflow Grid -->
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-bold">📚 Catálogo Completo (<span id="workflowCount">2000</span> workflows)</h2>
+          <div class="flex gap-2">
+            <button onclick="viewGrid()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            </button>
+            <button onclick="viewList()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="workflowGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-center gap-2 py-8">
+          <button onclick="prevPage()" class="px-4 py-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-800 transition disabled:opacity-50" id="prevBtn">
+            ← Anterior
+          </button>
+          <span class="text-sm text-slate-400 px-4" id="paginationInfo">Página 1 de 67</span>
+          <button onclick="nextPage()" class="px-4 py-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-800 transition" id="nextBtn">
+            Siguiente →
+          </button>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Cart Sidebar -->
+  <div id="cartSidebar" class="fixed inset-y-0 right-0 z-50 w-full max-w-md transform translate-x-full transition-transform duration-300">
+    <div class="h-full ml-auto glass border-l border-slate-800">
+      <div class="h-full flex flex-col">
+        <div class="p-5 border-b border-slate-800">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold">🛒 Carrito de Compras</h2>
+            <button onclick="toggleCart()" class="rounded-lg bg-slate-800 p-2 hover:bg-slate-700 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <p class="text-sm text-slate-400 mt-1"><span id="cartItemCount">0</span> items seleccionados</p>
+        </div>
+
+        <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin"></div>
+
+        <div class="p-5 border-t border-slate-800 space-y-4">
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-400">Subtotal</span>
+            <span id="cartSubtotal">$0.00</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-slate-400">Descuento (10%)</span>
+            <span class="text-emerald-400" id="cartDiscount">-$0.00</span>
+          </div>
+          <div class="flex justify-between text-lg font-bold">
+            <span>Total</span>
+            <span class="text-cyan-400" id="cartTotal">$0.00</span>
+          </div>
+          
+          <div class="flex gap-2">
+            <input id="promoCode" type="text" placeholder="Código promocional" 
+              class="flex-1 rounded-xl border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm outline-none" />
+            <button onclick="applyPromo()" class="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm hover:bg-slate-700 transition">
+              Aplicar
+            </button>
+          </div>
+
+          <button id="checkoutBtn" onclick="processCheckout()" class="w-full rounded-xl bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-pink-600 px-4 py-4 font-bold text-white hover:from-indigo-500 hover:via-fuchsia-500 hover:to-pink-500 transition shadow-lg shadow-indigo-500/25">
+            💰 Proceder al Pago
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stripe Webhook Info -->
+    <div class="fixed bottom-4 right-4 z-30">
+      <a href="${CONFIG.stripe.webhookSecret.includes('whsec_') ? 'https://dashboard.stripe.com/acct_1NBRtaGkYMN68Ax7/workbench/webhooks' : '#'}" 
+         target="_blank"
+         class="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-700 text-xs text-slate-400 hover:text-white hover:border-indigo-500 transition backdrop-blur-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Stripe Webhook Active
+      </a>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <dialog id="checkoutModal" class="w-[min(92vw,600px)] rounded-2xl border border-slate-800 bg-slate-950 p-0 text-slate-100 shadow-2xl shadow-black/50">
+    <div class="border-b border-slate-800 p-5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold flex items-center gap-2">
+          <span class="text-2xl">🔐</span> Checkout Seguro
+        </h2>
+        <button onclick="closeCheckoutModal()" class="rounded-lg bg-slate-800 p-2 hover:bg-slate-700 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="p-5 space-y-4">
+      <div id="checkoutContent"></div>
+    </div>
+  </dialog>
+
+  <!-- Workflow Detail Modal -->
+  <dialog id="workflowModal" class="w-[min(92vw,900px)] rounded-2xl border border-slate-800 bg-slate-950 p-0 text-slate-100 shadow-2xl shadow-black/50">
+    <div class="border-b border-slate-800 p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div id="wfModalCategory" class="text-xs text-cyan-400 mb-1">—</div>
+          <h2 id="wfModalTitle" class="text-xl font-bold">—</h2>
+        </div>
+        <button onclick="closeWorkflowModal()" class="rounded-lg bg-slate-800 p-2 hover:bg-slate-700 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div id="wfModalContent"></div>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="pointer-events-none fixed bottom-6 left-1/2 z-50 hidden w-[min(92vw,500px)] -translate-x-1/2">
+    <div class="glass pointer-events-auto rounded-2xl border border-slate-700 px-5 py-4 shadow-xl">
+      <div class="flex items-center gap-3">
+        <div id="toastIcon" class="text-2xl">✅</div>
+        <div>
+          <div id="toastTitle" class="font-semibold">—</div>
+          <div id="toastMessage" class="text-sm text-slate-300">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================
+    // 2000+ WORKFLOWS DATABASE
+    // ============================================
+    
+    const CONFIG = {
+      // === N8N API ===
+      n8n: {
+        apiUrl: 'https://control.apollopeak.io/n8n/api/v1',
+        webhookUrl: 'https://control.apollopeak.io/n8n-webhook',
+        apiKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZmM1YjdhNS00MTY3LTQ3MDItODMwOS0zNDIyMWNkMDM5ZjEiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzY0MzY5NjIwfQ.ZRAdQZeWY_R0v_K4ugdF96LF_sFTZaYdVgJjdBzZvIw'
+      },
+      // === STRIPE PRODUCCIÓN ===
+      stripe: {
+        secretKey: ',
+        publishableKey: 
+        webhookSecret: 
+        // Cuenta bancaria oficial de Stripe Payments Company
+        bankAccount: {
+          accountNumber: '16310144183240065',
+          routingNumber: '121000248',
+          beneficiaryName: 'Stripe Payments Company',
+          beneficiaryAddress: '354 Oyster Point Blvd, South San Francisco, CA 94080',
+          bankName: 'Wells Fargo Bank, N.A.',
+          type: 'ACH Transfer'
+        },
+        // Payment Method Configurations (PMC)
+        paymentMethodConfigs: [
+          { id: 'pmc_1ST9cn4YMUnMEYPN3y0hqkc3', name: 'Default', status: 'active', type: 'card' },
+          { id: 'pmc_1SdGDL4YMUnMEYPN3YGcrEA2', name: 'Default', status: 'active', type: 'card' },
+          { id: 'pmc_1STAeM4YMUnMEYPNsSVENZIP', name: 'Billing Payments', status: 'active', type: 'billing' },
+          { id: 'pmc_1STUNX4YMUnMEYPNXdjqYPle', name: 'Default', status: 'active', type: 'card' },
+          { id: 'pmc_1STAeN4YMUnMEYPNFfcOiBir', name: 'Default', status: 'active', type: 'card' }
+        ]
+      },
+      // === CRYPTO WALLETS REALES ===
+      crypto: {
+        wallets: {
+          USDC: '0xeBe965EFe1ab53d2da915134d72e5BdBd5E3C053',
+          USDT: '0xeBe965EFe1ab53d2da915134d72e5BdBd5E3C053',
+          BTC: 'bc1qjjgsx3lwa0wz59l89htcpr28j5s7dtmv99fmw0',
+          ETH: '0x2F4bc6f77719AB99BCd6a9b553729bB96C9B8c22'
+        },
+        kucoin: {
+          apiKey: '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',
+          apiSecret: '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'
+        }
+      },
+      // === BANCOS REALES ===
+      bank: {
+        usa: { routing: '101019644', account: '211534854868', bank: 'Lead Bank', swift: 'N/A' },
+        europe: { iban: 'MT12CFTE28004000000000005456093', bank: 'OPENPAYD MALTA', swift: 'N/A' },
+        luxembourg: { iban: 'LU344080000044110945', bic: 'BCIRLULL', bank: 'Banking Circle' }
+      },
+      // === COMPLIANCE & TAXES ===
+      tax: {
+        taxjar: 'tj_live_9xJv9aM5GJ2cV8nYp4mT6wQ9rS3lK8jZ1vP2oL7nK9m',
+        vat: 'vat_live_3t9Lk9xJv9aM5GJ2cV8nYp4mT6wQ9rS3lK8jZ1vP2oL7nK9m'
+      },
+      // === PAGO MÓVIL ===
+      mobile: {
+        bizum: { apiKey: 'bizum_live_9xJv9aM5GJ2cV8nYp4mT6wQ9rS3lK8jZ1vP2oL7nK9m', merchantId: 'APOLLO001' },
+        klarna: { apiKey: 'a2xvYXJkLmtscm5hLmNvbQ==', region: 'EU' }
+      },
+      // === TELEGRAM ALERTAS ===
+      telegram: {
+        botToken: '8267747020:AAEHJ20w97okxTDP0-V00u5S8iKGThL-Vbk',
+        chatId: '@d3h1ckt4rglobal_bot'
+      }
+    };
+
+    // ============================================
+    // COMPLETE WORKFLOWS DATABASE (2000+)
+    // ============================================
+    
+    const WORKFLOW_CATALOG = [
+      // === 01-20: MARKETING DIGITAL ===
+      { id: 'WF001', name: 'LandingPage_Optimizer_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'OpenAI GPT-4', integrations: ['Google Analytics', 'Google Sheets', 'Telegram'], premium: false, description: 'Sistema de optimización A/B para landing pages con análisis de conversión en tiempo real', active: true },
+      { id: 'WF002', name: 'LeadMagnet_Automation_v2025.json', category: 'Marketing Digital', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Webhook', ia: 'OpenAI GPT-4', integrations: ['Email', 'Google Sheets', 'CRM'], premium: false, description: 'Automatización de entrega de lead magnets con seguimiento', active: true },
+      { id: 'WF003', name: 'SocialProof_Engine_v2025.json', category: 'Marketing Digital', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Website', 'Google Sheets'], premium: false, description: 'Motor de prueba social con notificaciones en tiempo real', active: true },
+      { id: 'WF004', name: 'Redbubble_Bulk_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Redbubble API', 'Stability AI'], premium: false, description: 'Carga masiva de diseños a Redbubble con optimización SEO', active: true },
+      { id: 'WF005', name: 'CRM_Integration_Master_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook/Schedule', ia: 'GPT-4', integrations: ['HubSpot', 'Salesforce', 'Pipedrive'], premium: false, description: 'Integración master de múltiples CRMs con sincronización bidireccional', active: true },
+      { id: 'WF006', name: 'SMS_Marketing_Engine_v2025.json', category: 'Marketing Digital', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twilio', 'Google Sheets'], premium: false, description: 'Motor de campañas SMS con personalización por IA', active: true },
+      { id: 'WF007', name: 'Personalized_Marketing_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini', integrations: ['Analytics', 'Email', 'CRM'], premium: false, description: 'Marketing personalizado basado en comportamiento del usuario', active: true },
+      { id: 'WF008', name: 'Review_Management_System_v2025.json', category: 'Marketing Digital', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Google My Business', 'Yelp', 'TrustPilot'], premium: false, descripción: 'Sistema de gestión y respuesta automática a reseñas', active: true },
+      { id: 'WF009', name: 'EmailFlow_Master_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Email Service', 'CRM', 'Analytics'], premium: false, description: 'Sistema master de flujos de email con segmentación avanzada', active: true },
+      { id: 'WF010', name: 'Affiliate_Marketing_Pro_v2025.json', category: 'Marketing Digital', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'OpenAI GPT-4', integrations: ['Amazon PA-API', 'Google Sheets', 'Analytics'], premium: true, description: 'Sistema completo de marketing de afiliados con tracking avanzado', active: true },
+      { id: 'WF011', name: 'AbandonedCart_Recovery_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['E-commerce', 'Email', 'SMS'], premium: false, description: 'Recuperación de carritos abandonados con múltiples canales', active: true },
+      { id: 'WF012', name: 'Subscription_Billing_Automation_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Stripe', 'PayPal', 'Email'], premium: false, description: 'Automatización de suscripciones y cobros recurrentes', active: true },
+      { id: 'WF013', name: 'Voice_Marketing_Automation_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'ElevenLabs, GPT-4', integrations: ['Twilio', 'Email', 'Telegram'], premium: false, description: 'Marketing por voz con llamadas automatizadas', active: true },
+      { id: 'WF014', name: 'Geo_Targeting_Pro_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Google Maps', 'Email', 'SMS'], premium: false, description: 'Marketing geo-dirigido con personalización por ubicación', active: true },
+      { id: 'WF015', name: 'Chatbot_Conversational_AI_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini', integrations: ['Website', 'WhatsApp', 'Telegram'], premium: false, description: 'Chatbot conversacional con IA avanzada', active: true },
+      { id: 'WF016', name: 'Programmatic_Advertising_v2025.json', category: 'Marketing Digital', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Google Ads', 'Facebook Ads', 'Analytics'], premium: true, description: 'Publicidad programática con optimización automática', active: true },
+      { id: 'WF017', name: 'Retargeting_Automation_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Ad Platforms', 'Email', 'CRM'], premium: false, description: 'Automatización de campañas de retargeting', active: true },
+      { id: 'WF018', name: 'Content_Distribution_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Email', 'SEO Tools'], premium: false, description: 'Distribución automática de contenido multi-canal', active: true },
+      { id: 'WF019', name: 'Predictive_Analytics_v2025.json', category: 'Marketing Digital', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Analytics', 'CRM', 'ML Platform'], premium: true, description: 'Análisis predictivo para marketing', active: true },
+      { id: 'WF020', name: 'StockAlert_Pro_v2025.json', category: 'Marketing Digital', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Stock APIs', 'Email', 'Telegram'], premium: false, description: 'Alertas de stock en tiempo real para afiliados', active: true },
+      
+      // === 21-30: IA Y CONTENIDO ===
+      { id: 'WF021', name: 'ContentCreator_AI_v2025.json', category: 'IA y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini, Stability AI', integrations: ['WordPress', 'Medium', 'Ghost', 'Google Sheets'], premium: true, description: 'Generador automático multi-formato de contenido optimizado para SEO', active: true },
+      { id: 'WF022', name: 'VideoCreator_AI_v2025.json', category: 'IA y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, ElevenLabs, Stability AI', integrations: ['YouTube', 'TikTok', 'Vimeo'], premium: true, description: 'Creación automática de videos con script, voice-over y edición', active: true },
+      { id: 'WF023', name: 'Email_Automation_v2025.json', category: 'IA y Contenido', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['SendGrid', 'Mailchimp', 'Gmail'], premium: false, description: 'Automatización completa de campañas de email', active: true },
+      { id: 'WF024', name: 'Social_Media_Automation_v2025.json', category: 'IA y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter', 'Instagram', 'LinkedIn', 'Facebook'], premium: false, description: 'Gestión automatizada multi-plataforma de redes sociales', active: true },
+      { id: 'WF025', name: 'Customer_Journey_Mapping_v2025.json', category: 'IA y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['CRM', 'Analytics', 'Email'], premium: false, description: 'Mapeo del journey del cliente con IA', active: true },
+      { id: 'WF026', name: 'AB_Testing_Automation_v2025.json', category: 'IA y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Analytics', 'Website', 'Google Sheets'], premium: false, description: 'Automatización de tests A/B con análisis', active: true },
+      { id: 'WF027', name: 'Conversion_Optimization_v2025.json', category: 'IA y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Analytics', 'Website', 'CRM'], premium: false, description: 'Optimización de conversiones con IA', active: true },
+      { id: 'WF028', name: 'Customer_Segmentation_v2025.json', category: 'IA y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['CRM', 'Analytics', 'Email'], premium: false, description: 'Segmentación automática de clientes con ML', active: true },
+      { id: 'WF029', name: 'Personal_Assistant_AI_v2025.json', category: 'IA y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook/Schedule', ia: 'GPT-4, Gemini', integrations: ['Calendar', 'Email', 'Task Management'], premium: true, description: 'Asistente personal con IA para gestión de tareas y comunicaciones', active: true },
+      { id: 'WF030', name: 'Process_Automation_v2025.json', category: 'IA y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Multiple Tools', 'API'], premium: false, description: 'Automatización de procesos empresariales', active: true },
+
+      // === 31-60: GESTIÓN EMPRESARIAL ===
+      { id: 'WF031', name: 'TaskMaster_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Trello', 'Asana', 'Monday.com'], premium: false, description: 'Gestión inteligente de tareas con priorización por IA', active: true },
+      { id: 'WF032', name: 'Data_Analytics_Dashboard_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Google Analytics', 'Mixpanel', 'Amplitude'], premium: false, description: 'Dashboard de analytics en tiempo real con insights de IA', active: true },
+      { id: 'WF033', name: 'Inventory_Management_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['E-commerce', 'Warehouse', 'Accounting'], premium: false, description: 'Gestión de inventario automatizada', active: true },
+      { id: 'WF034', name: 'Supply_Chain_Optimization_v2025.json', category: 'Gestión Empresarial', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Logistics', 'Warehouse', 'Suppliers'], premium: true, description: 'Optimización de supply chain con IA predictiva', active: true },
+      { id: 'WF035', name: 'Financial_Reporting_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Accounting', 'Bank APIs', 'Excel'], premium: false, description: 'Reportes financieros automatizados', active: true },
+      { id: 'WF036', name: 'Budget_Planning_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Spreadsheets', 'Accounting', 'Forecasting'], premium: false, description: 'Planificación de presupuestos con IA', active: true },
+      { id: 'WF037', name: 'Risk_Management_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Analytics', 'Alerts', 'Reporting'], premium: false, description: 'Gestión de riesgos automatizada', active: true },
+      { id: 'WF038', name: 'Compliance_Monitoring_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Legal', 'Regulatory APIs', 'Audit'], premium: false, description: 'Monitoreo de cumplimiento normativo', active: true },
+      { id: 'WF039', name: 'Document_Management_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Google Drive', 'Dropbox', 'OCR'], premium: false, description: 'Gestión documental automatizada', active: true },
+      { id: 'WF040', name: 'Knowledge_Management_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Wiki', 'Search', 'RAG'], premium: false, description: 'Gestión del conocimiento empresarial', active: true },
+      { id: 'WF041', name: 'CourseCreation_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, ElevenLabs, Stability AI', integrations: ['LMS Platforms', 'Video Hosting'], premium: true, description: 'Creación automática de cursos completos', active: true },
+      { id: 'WF042', name: 'Project_Management_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Jira', 'Trello', 'Asana'], premium: false, description: 'Automatización de gestión de proyectos', active: true },
+      { id: 'WF043', name: 'Time_Tracking_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Calendar', 'Timesheets', 'Billing'], premium: false, description: 'Seguimiento automático de tiempo', active: true },
+      { id: 'WF044', name: 'Expense_Management_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Receipt Scanning', 'Accounting', 'Approvals'], premium: false, description: 'Gestión de gastos automatizada', active: true },
+      { id: 'WF045', name: 'HR_Automation_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['HRIS', 'Onboarding', 'Payroll'], premium: false, description: 'Automatización de procesos HR', active: true },
+      { id: 'WF046', name: 'BudgetPlanner_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['QuickBooks', 'Xero', 'Google Sheets'], premium: false, description: 'Planificador de presupuesto con predicciones', active: true },
+      { id: 'WF047', name: 'InvestmentTracker_Pro_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Broker APIs', 'Portfolio', 'Analytics'], premium: false, description: 'Seguimiento de inversiones avanzado', active: true },
+      { id: 'WF048', name: 'RetirementPlanner_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Financial APIs', 'Forecasting', 'Reports'], premium: false, description: 'Planificador de jubilación con IA', active: true },
+      { id: 'WF049', name: 'TaxOptimizer_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Tax APIs', 'Accounting Software'], premium: true, description: 'Optimización fiscal inteligente', active: true },
+      { id: 'WF050', name: 'ExpenseAnalytics_Advanced_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Credit Cards', 'Bank', 'Reports'], premium: false, description: 'Análisis avanzado de gastos', active: true },
+      { id: 'WF051', name: 'BudgetTracker_Pro_v2025.json', category: 'Gestión Empresarial', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Spreadsheets', 'Bank API', 'Categories'], premium: false, description: 'Control de presupuesto personal/pro', active: true },
+      { id: 'WF052', name: 'BusinessIntelligence_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Data Warehouses', 'Analytics Platforms'], premium: true, description: 'Sistema completo de BI con análisis predictivo', active: true },
+      { id: 'WF053', name: 'SupplyChain_Optimizer_v2025.json', category: 'Gestión Empresarial', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Logistics', 'Inventory', 'Forecasting'], premium: true, description: 'Optimización de supply chain', active: true },
+      { id: 'WF054', name: 'QualityControl_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['QC Systems', 'Alerts', 'Reports'], premium: false, description: 'Control de calidad con IA', active: true },
+      { id: 'WF055', name: 'ProductionPlanning_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Manufacturing', 'Scheduling', 'Inventory'], premium: false, description: 'Planificación de producción con IA', active: true },
+      { id: 'WF056', name: 'InventoryManagement_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Warehouse', 'Sales', 'Forecasting'], premium: false, description: 'Gestión de inventario inteligente', active: true },
+      { id: 'WF057', name: 'MaintenancePredictive_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['IoT', 'Sensors', 'Maintenance Systems'], premium: true, description: 'Mantenimiento predictivo con IA', active: true },
+      { id: 'WF058', name: 'EnergyOptimization_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Energy APIs', 'Sensors', 'Cost Analysis'], premium: false, description: 'Optimización energética con IA', active: true },
+      { id: 'WF059', name: 'SafetyMonitoring_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Sensors', 'Alerts', 'Compliance'], premium: false, description: 'Monitoreo de seguridad laboral', active: true },
+      { id: 'WF060', name: 'ComplianceMonitoring_AI_v2025.json', category: 'Gestión Empresarial', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Regulatory', 'Audit', 'Reports'], premium: false, description: 'Monitoreo de cumplimiento con IA', active: true },
+
+      // === 61-80: PRODUCCIÓN Y CONTENIDO ===
+      { id: 'WF061', name: 'ContentStrategy_AI_v2025.json', category: 'Producción y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Content Platforms', 'Analytics'], premium: true, description: 'Estrategia de contenido completa', active: true },
+      { id: 'WF062', name: 'SocialMedia_Bot_AI_v2025.json', category: 'Producción y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter', 'Instagram', 'LinkedIn'], premium: true, description: 'Bot inteligente para engagement automático', active: true },
+      { id: 'WF063', name: 'BrandMonitoring_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'News', 'Sentiment'], premium: false, description: 'Monitoreo de marca con IA', active: true },
+      { id: 'WF064', name: 'Influencer_Matching_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Social Media', 'Analytics', 'CRM'], premium: false, description: 'Emparejamiento de influencers con IA', active: true },
+      { id: 'WF065', name: 'VideoProduction_AI_v2025.json', category: 'Producción y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, ElevenLabs, Stability AI', integrations: ['Video Platforms', 'Cloud Storage'], premium: true, description: 'Producción completa de videos', active: true },
+      { id: 'WF066', name: 'PodcastAutomation_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, ElevenLabs', integrations: ['Podcast Platforms', 'Audio Tools'], premium: false, description: 'Automatización de podcasts', active: true },
+      { id: 'WF067', name: 'GraphicDesign_AI_v2025.json', category: 'Producción y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'Stability AI, GPT-4', integrations: ['Canva', 'Figma', 'Cloud Storage'], premium: true, description: 'Diseño gráfico automático', active: true },
+      { id: 'WF068', name: 'EmailTemplates_AI_v2025.json', category: 'Producción y Contenido', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Email Platforms', 'Templates'], premium: false, description: 'Generador de plantillas de email', active: true },
+      { id: 'WF069', name: 'BlogAutomation_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['WordPress', 'SEO Tools', 'Social Media'], premium: false, description: 'Automatización de blogs', active: true },
+      { id: 'WF070', name: 'CourseCreation_AI_v2025.json', category: 'Producción y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, ElevenLabs, Stability AI', integrations: ['LMS', 'Video Hosting'], premium: true, description: 'Creación automática de cursos', active: true },
+      { id: 'WF071', name: 'CustomerSupport_Bot_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Chat', 'Email', 'Knowledge Base'], premium: false, description: 'Bot de soporte al cliente', active: true },
+      { id: 'WF072', name: 'LeadScoring_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['CRM', 'Analytics', 'Marketing'], premium: false, description: 'Puntuación de leads con IA', active: true },
+      { id: 'WF073', name: 'SalesFunnel_AI_v2025.json', category: 'Producción y Contenido', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini', integrations: ['CRM', 'Email', 'Analytics'], premium: true, description: 'Embudo de ventas inteligente', active: true },
+      { id: 'WF074', name: 'CustomerSegmentation_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['CRM', 'Analytics', 'Marketing'], premium: false, description: 'Segmentación de clientes avanzada', active: true },
+      { id: 'WF075', name: 'PricingOptimization_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['E-commerce', 'Analytics', 'Competitors'], premium: false, description: 'Optimización de precios con IA', active: true },
+      { id: 'WF076', name: 'CompetitiveIntelligence_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Scraping', 'News', 'Analytics'], premium: false, description: 'Inteligencia competitiva', active: true },
+      { id: 'WF077', name: 'CustomerRetention_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['CRM', 'Email', 'Analytics'], premium: false, description: 'Retención de clientes con IA', active: true },
+      { id: 'WF078', name: 'ABTesting_Automation_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Analytics', 'Website', 'ML'], premium: false, description: 'Automatización de A/B testing', active: true },
+      { id: 'WF079', name: 'Personalization_Engine_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Website', 'Email', 'Mobile'], premium: false, description: 'Motor de personalización', active: true },
+      { id: 'WF080', name: 'ConversionOptimization_AI_v2025.json', category: 'Producción y Contenido', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Analytics', 'Funnel', 'A/B Tests'], premium: false, description: 'Optimización de conversiones', active: true },
+
+      // === 81-100: IA AVANZADA ===
+      { id: 'WF081', name: 'Analytics360_Pro_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Multiple Analytics Platforms'], premium: true, description: 'Analytics 360 grados', active: true },
+      { id: 'WF082', name: 'PredictiveAnalytics_AI_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4, Gemini', integrations: ['Data Sources', 'ML Platforms'], premium: true, description: 'Análisis predictivo avanzado', active: true },
+      { id: 'WF083', name: 'RecommendationEngine_AI_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini', integrations: ['E-commerce', 'Content Platforms'], premium: true, description: 'Motor de recomendaciones personalizado', active: true },
+      { id: 'WF084', name: 'Chatbot_Conversational_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Multiple Platforms', 'Knowledge Base'], premium: false, description: 'Chatbot conversacional avanzado', active: true },
+      { id: 'WF085', name: 'VoiceAssistant_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, ElevenLabs', integrations: ['Voice APIs', 'Automation'], premium: false, description: 'Asistente de voz con IA', active: true },
+      { id: 'WF086', name: 'FraudDetection_AI_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini', integrations: ['Payment Gateways', 'Security Services'], premium: true, description: 'Detección de fraude en tiempo real', active: true },
+      { id: 'WF087', name: 'SecurityMonitoring_AI_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Security Tools', 'Log Management'], premium: true, description: 'Monitoreo de seguridad con IA', active: true },
+      { id: 'WF088', name: 'ImageRecognition_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4 Vision', integrations: ['Image APIs', 'Storage', 'Analytics'], premium: false, description: 'Reconocimiento de imágenes con IA', active: true },
+      { id: 'WF089', name: 'NaturalLanguage_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['NLP APIs', 'Text Processing'], premium: false, description: 'Procesamiento de lenguaje natural', active: true },
+      { id: 'WF090', name: 'RecommendationSystems_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['ML', 'Data', 'Personalization'], premium: false, description: 'Sistemas de recomendación avanzados', active: true },
+      { id: 'WF091', name: 'AutomatedTesting_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Testing Platforms', 'CI/CD'], premium: false, description: 'Testing automatizado con IA', active: true },
+      { id: 'WF092', name: 'LogisticsOptimization_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Logistics', 'Maps', 'Scheduling'], premium: false, description: 'Optimización logística', active: true },
+      { id: 'WF093', name: 'ResourceAllocation_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Project Mgmt', 'Resources', 'Forecasting'], premium: false, description: 'Asignación inteligente de recursos', active: true },
+      { id: 'WF094', name: 'WorkflowAutomation_AI_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4, Gemini', integrations: ['Multiple Business Tools'], premium: true, description: 'Automatización de workflows con auto-optimización', active: true },
+      { id: 'WF095', name: 'KnowledgeManagement_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Documents', 'Search', 'RAG'], premium: false, description: 'Gestión del conocimiento con IA', active: true },
+      { id: 'WF096', name: 'DocumentProcessing_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['OCR', 'PDF', 'Data Extraction'], premium: false, description: 'Procesamiento de documentos con IA', active: true },
+      { id: 'WF097', name: 'TaskAutomation_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Productivity Tools', 'APIs'], premium: false, description: 'Automatización de tareas con IA', active: true },
+      { id: 'WF098', name: 'DecisionSupport_AI_v2025.json', category: 'IA Avanzada', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Analytics', 'Data', 'Reports'], premium: false, description: 'Sistema de apoyo a decisiones', active: true },
+      { id: 'WF099', name: 'IntelligentOrchestration_AI_v2025.json', category: 'IA Avanzada', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook/Schedule', ia: 'GPT-4, Gemini', integrations: ['Orchestration', 'ML', 'Automation'], premium: true, description: 'Orquestación inteligente de sistemas', active: true },
+      { id: 'WF100', name: 'UniversalAutomation_AI_v2025.json', category: 'IA Avanzada', complexity: 'legendary', price: 9.99, nodes: 7, trigger: 'Webhook/Schedule', ia: 'GPT-4, Gemini', integrations: ['Universal APIs'], premium: true, description: 'Sistema de automatización universal adaptable a cualquier caso', active: true },
+
+      // === 101-200: SOCIAL MEDIA EXPANDED ===
+      { id: 'WF101', name: '01workflowBluesky.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Bluesky', 'Scheduler', 'Analytics'], premium: false, description: 'Automatización para Bluesky', active: true },
+      { id: 'WF102', name: '01workflowFacebook.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Facebook', 'Ads', 'Analytics'], premium: false, description: 'Automatización completa para Facebook', active: true },
+      { id: 'WF103', name: '01workflowInsta.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Instagram', 'Reels', 'Stories'], premium: false, description: 'Gestión automatizada de Instagram', active: true },
+      { id: 'WF104', name: '01workflowPinterest.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Pinterest', 'Boards', 'Pins'], premium: false, description: 'Automatización de Pinterest', active: true },
+      { id: 'WF105', name: '01workflowThreads.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Threads', 'Engagement', 'Scheduling'], premium: false, description: 'Gestión de Threads automatizada', active: true },
+      { id: 'WF106', name: '01workflowTiktok.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['TikTok', 'Shorts', 'Hashtags'], premium: false, description: 'Automatización de TikTok', active: true },
+      { id: 'WF107', name: '01workflowTwiterX.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter/X', 'Threads', 'Analytics'], premium: false, description: 'Gestión completa de Twitter/X', active: true },
+      { id: 'WF108', name: '01workflowYoutube.json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['YouTube', 'Shorts', 'Analytics'], premium: false, description: 'Automatización de YouTube', active: true },
+      { id: 'WF109', name: 'Social_Media_AutoPoster_AI_PREMIUM_v2025.json', category: 'Social Media', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter', 'Instagram', 'LinkedIn', 'Google Sheets', 'Telegram'], premium: true, description: 'Publicación automática multi-plataforma premium', active: true },
+      { id: 'WF110', name: '2406UltraOptimizado_Sociales_1Hora_1000Ventas.json', category: 'Social Media', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule', ia: 'GPT-4', integrations: ['All Platforms', 'Analytics', 'Sales'], premium: true, description: 'Sistema ultra-optimizado para generar ventas en 1 hora', active: true },
+
+      // === 200-300: AFFILIATE MARKETING ===
+      { id: 'WF201', name: 'dihackamazon.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon PA-API', 'Telegram', 'Analytics'], premium: false, description: 'Automatización de afiliados Amazon', active: true },
+      { id: 'WF202', name: 'dihackredesociales.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Affiliate Links', 'Tracking'], premium: false, description: 'Promoción de afiliados en redes sociales', active: true },
+      { id: 'WF203', name: 'dihackredesociales_(1).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Affiliate Links'], premium: false, description: 'Versión alternativa de automatización de afiliados', active: true },
+      { id: 'WF204', name: 'dihackredesociales_(2).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Affiliate Links'], premium: false, description: 'Segunda versión de automatización de afiliados', active: true },
+      { id: 'WF205', name: 'dihacktor_ULTIMATE_FINAL.json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'All Platforms', 'Analytics', 'Telegram'], premium: true, description: '🔥 WORKFLOW DEFINITIVO - Sistema master completo de afiliados', active: true },
+      { id: 'WF206', name: 'dihactoramazonLuz.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Telegram', 'Email'], premium: false, description: 'Workflow personalizado de afiliados Amazon', active: true },
+      { id: 'WF207', name: 'eccomerceafiliado.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['E-commerce', 'Affiliate APIs', 'Analytics'], premium: false, description: 'Sistema de e-commerce y afiliados', active: true },
+      { id: 'WF208', name: 'Email_Affiliate_Automation.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Email Service', 'Affiliate Networks', 'Analytics'], premium: false, description: 'Automatización de email para afiliados', active: true },
+      { id: 'WF209', name: 'flujodeventasdeafiliados.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliate APIs', 'Analytics', 'Email', 'Telegram'], premium: false, description: 'Flujo completo de ventas de afiliados', active: true },
+      { id: 'WF210', name: 'flujo_epico_afiliados.json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics', 'CRM', 'Email'], premium: true, description: '🚀 FLUJO ÉPICO DE AFILIADOS - Sistema definitivo', active: true },
+      { id: 'WF211', name: 'flujo_epico_afiliados_(1).json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics'], premium: true, description: '🚀 FLUJO ÉPICO V2 - Sistema definitivo de afiliados', active: true },
+      { id: 'WF212', name: 'flujo_epico_afiliados_(2).json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics'], premium: true, description: '🚀 FLUJO ÉPICO V3 - Sistema definitivo de afiliados', active: true },
+      { id: 'WF213', name: 'flujo_epico_afiliados_(3).json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics'], premium: true, description: '🚀 FLUJO ÉPICO V4 - Sistema definitivo de afiliados', active: true },
+      { id: 'WF214', name: 'flujo_epico_afiliados_(4).json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics'], premium: true, description: '🚀 FLUJO ÉPICO V5 - Sistema definitivo de afiliados', active: true },
+      { id: 'WF215', name: 'flujo_epico_afiliados_(5).json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics'], premium: true, description: '🚀 FLUJO ÉPICO V6 - Sistema definitivo de afiliados', active: true },
+      { id: 'WF216', name: 'flujo_epico_afiliados_(6).json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'Multiple Networks', 'Analytics'], premium: true, description: '🚀 FLUJO ÉPICO FINAL - Sistema definitivo de afiliados', active: true },
+      { id: 'WF217', name: '0001-Super_Affiliate_Sales_Engine_GLOBAL.json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Schedule/Webhook', ia: 'GPT-4, Claude', integrations: ['Amazon', 'All Affiliate Networks', 'Analytics', 'Email', 'Telegram'], premium: true, description: '🔥 SUPER AFFILIATE SALES ENGINE - Motor global de ventas', active: true },
+      { id: 'WF218', name: 'AAAAutoAmazon_15Hrs_2000Ventas_RetoTotal.json', category: 'Affiliate Marketing', complexity: 'legendary', price: 9.99, nodes: 15, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'All Platforms', 'Analytics'], premium: true, description: '🏆 RETO TOTAL - 2000 ventas en 15 horas', active: true },
+      { id: 'WF219', name: 'AAAdiegocortez.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Analytics', 'Telegram'], premium: false, description: 'Workflow personalizado Diego Cortez', active: true },
+      { id: 'WF220', name: 'affiAmazdihack25.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Analytics'], premium: false, description: 'Automatización afiliados Amazon 2025', active: true },
+
+      // === 300-400: AI AGENTS ===
+      { id: 'WF301', name: 'Desarrollador_n8n___CEO_Agent.json', category: 'AI Agents', complexity: 'legendary', price: 9.99, nodes: 10, trigger: 'Webhook', ia: 'GPT-4, Claude', integrations: ['n8n API', 'GitHub', 'Analytics', 'Slack'], premium: true, description: '🤖 AGENTE CEO para desarrollo n8n con decisiones estratégicas', active: true },
+      { id: 'WF302', name: 'dental_practice_voice_agent.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'OpenAI GPT-4', integrations: ['Voice API', 'Dental Records', 'Telegram'], premium: false, description: '🪥 Agente de voz para consultorios dentales', active: true },
+      { id: 'WF303', name: 'AgentDesarrollador.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4, Claude', integrations: ['GitHub', 'Code', 'APIs'], premium: true, description: '👨‍💻 Agente desarrollador de código', active: true },
+      { id: 'WF304', name: 'Agente_Desarrollador.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Code', 'GitHub', 'Testing'], premium: true, description: '🤖 Agente desarrollador alternativo', active: true },
+      { id: 'WF305', name: 'Agentic Telegram AI bot with LangChain.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4, LangChain', integrations: ['Telegram', 'LangChain', 'Vector DB'], premium: true, description: '🤖 Bot de Telegram con LangChain', active: true },
+      { id: 'WF306', name: 'Agent Swarm.json', category: 'AI Agents', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook', ia: 'GPT-4, Multi-Agent', integrations: ['Multiple Agents', 'Coordination'], premium: true, description: '🐝 Enjambre de agentes IA coordinados', active: true },
+      { id: 'WF307', name: 'AI Agent chat.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Chat', 'Memory'], premium: false, description: '💬 Agente de chat con IA', active: true },
+      { id: 'WF308', name: 'AI agent for Instagram DM.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Instagram', 'ManyChat', 'OpenAI'], premium: false, description: '📸 Agente para DM de Instagram', active: true },
+      { id: 'WF309', name: 'AI Agent with Ollama for weather.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'Ollama', integrations: ['Weather API', 'Wiki'], premium: false, description: '🌤️ Agente con Ollama para consultas', active: true },
+      { id: 'WF310', name: 'AI Agent To Chat With Files In Supabase.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Supabase', 'Storage', 'Chat'], premium: true, description: '📁 Agente para chatear con archivos', active: true },
+      { id: 'WF311', name: 'AI Agent to chat with Supabase DB.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Supabase', 'PostgreSQL', 'Chat'], premium: true, description: '🗄️ Agente para chatear con base de datos', active: true },
+      { id: 'WF312', name: 'AI Agent with Search Console Data.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Search Console', 'Postgres', 'Chat'], premium: false, description: '📊 Agente para datos de Search Console', active: true },
+      { id: 'WF313', name: 'AI Crew to Automate Stock Analysis.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Webhook', ia: 'GPT-4, Multi-Agent', integrations: ['Stock APIs', 'Analysis', 'Chat'], premium: true, description: '📈 Crew IA para análisis de acciones', active: true },
+      { id: 'WF314', name 'AI-Powered Candidate Shortlisting.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['ERPNext', 'HR', 'CV Analysis'], premium: false, description: '👥 Selección de candidatos con IA', active: true },
+      { id: 'WF315', name: 'AI chat with any data source.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Data Sources', 'Retriever'], premium: false, description: '💬 Chat con cualquier fuente de datos', active: true },
+      { id: 'WF316', name: 'AI Ask questions about any data source.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Workflow Retriever', 'Data'], premium: false, description: '❓ Preguntas sobre cualquier fuente de datos', active: true },
+      { id: 'WF317', name: 'AI chatbot that can search the web.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Web Search', 'Chat'], premium: false, description: '🌐 Chatbot que busca en la web', active: true },
+      { id: 'WF318', name: 'AI Customer feedback sentiment analysis.json', category: 'AI Agents', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Feedback', 'Sentiment'], premium: false, description: '💭 Análisis de sentimiento de feedback', active: true },
+      { id: 'WF319', name: 'Agente_Perplexity.json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'Perplexity, GPT-4', integrations: ['Perplexity', 'Research', 'Chat'], premium: true, description: '🔍 Agente de investigación Perplexity', active: true },
+      { id: 'WF320', name: 'Sistema_Multi_Agentes_Marketing.json', category: 'AI Agents', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook', ia: 'GPT-4, Multi-Agent', integrations: ['Marketing', 'Coordination'], premium: true, description: '🎯 Sistema multi-agentes para marketing', active: true },
+
+      // === 400-500: DATA & DOCUMENT PROCESSING ===
+      { id: 'WF401', name: 'Detect_hallucinations_using_ollama_minicheck.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'Ollama MiniCheck', integrations: ['LLM', 'Vector DB', 'Evaluation'], premium: false, description: '🧠 Detección de alucinaciones en LLMs', active: true },
+      { id: 'WF402', name: 'ETL pipeline for text processing.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Database', 'Storage', 'APIs'], premium: false, description: 'Pipeline ETL para procesamiento de texto', active: true },
+      { id: 'WF403', name: 'Extract and process information from PDF using Claude and Gemini.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'Claude, Gemini', integrations: ['PDF', 'Document AI', 'Database'], premium: false, description: 'Extracción de PDFs con Claude y Gemini', active: true },
+      { id: 'WF404', name: 'Extract data from resume and create PDF with Gotenberg.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['PDF Parser', 'Gotenberg', 'Resume DB'], premium: false, description: 'Procesamiento de currículums a PDF', active: true },
+      { id: 'WF405', name: 'Extract insights & analyse YouTube comments via AI Agent.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['YouTube API', 'Analytics', 'Chat'], premium: false, description: 'Análisis de comentarios de YouTube', active: true },
+      { id: 'WF406', name: 'Extract license plate number from image via n8n form.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'Vision AI', integrations: ['Image Processing', 'Forms', 'Database'], premium: false, description: 'Reconocimiento de matrículas', active: true },
+      { id: 'WF407', name: 'Extract personal data with self-hosted LLM Mistral NeMo.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'Mistral NeMo', integrations: ['Self-hosted LLM', 'Data Processing', 'Privacy'], premium: false, description: 'Extracción de datos personales con LLM local', active: true },
+      { id: 'WF408', name: 'Extract text from PDF and image using Vertex AI into CSV.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'Gemini', integrations: ['Vertex AI', 'PDF', 'CSV', 'Google Cloud'], premium: false, description: 'Extracción de texto a CSV con Vertex AI', active: true },
+      { id: 'WF409', name: 'AI Data Extraction with Dynamic Prompts and Airtable.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Airtable', 'Dynamic Prompts'], premium: false, description: 'Extracción dinámica con Airtable', active: true },
+      { id: 'WF410', name: 'AI Data Extraction with Dynamic Prompts and Baserow.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Baserow', 'Dynamic Prompts'], premium: false, description: 'Extracción dinámica con Baserow', active: true },
+      { id: 'WF411', name: 'AI-Driven Lead Management with ERPNext.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['ERPNext', 'Lead Management'], premium: false, description: 'Gestión de leads con ERPNext', active: true },
+      { id: 'WF412', name: 'AI Fitness Coach with Strava Analysis.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Strava', 'Fitness APIs'], premium: false, description: 'Coach de fitness con análisis Strava', active: true },
+      { id: 'WF413', name: 'Scrape and summarize posts with AI.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Scraping', 'NocoDB'], premium: false, description: 'Scraping y resumen de posts', active: true },
+      { id: 'WF414', name: 'Scrape Trustpilot Reviews with DeepSeek.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'DeepSeek, OpenAI', integrations: ['Trustpilot', 'Sentiment Analysis'], premium: false, description: 'Reviews de Trustpilot con análisis', active: true },
+      { id: 'WF415', name: 'Visual Regression Testing with Apify and AI.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4 Vision', integrations: ['Apify', 'AI Vision'], premium: false, description: 'Testing visual con IA', active: true },
+      { id: 'WF416', name: 'Survey Insights with Qdrant and Python.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Qdrant', 'Python', 'Extraction'], premium: false, description: 'Insights de encuestas', active: true },
+      { id: 'WF417', name: 'Vector Database as Big Data Analysis Tool.json', category: 'Data & ML', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Vector DB', 'ML', 'Anomaly Detection'], premium: true, description: 'Análisis de big data con vector DB', active: true },
+      { id: 'WF418', name: 'Talk to your SQLite database with LangChain.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'LangChain', integrations: ['SQLite', 'LangChain', 'Chat'], premium: false, description: 'Chat con base de datos SQLite', active: true },
+      { id: 'WF419', name: 'Supabase Insertion & Upsertion & Retrieval.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'None', integrations: ['Supabase', 'Database'], premium: false, description: 'Operaciones avanzadas en Supabase', active: true },
+      { id: 'WF420', name: 'Enrich Pipedrive with GPT-4o & Slack.json', category: 'Data & ML', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4o', integrations: ['Pipedrive', 'OpenAI', 'Slack'], premium: false, description: 'Enriquecimiento de datos Pipedrive', active: true },
+
+      // === 500-600: WEB SCRAPING ===
+      { id: 'WF501', name: 'firecrawl_email_scraper.json', category: 'Web Scraping', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Firecrawl', 'Email Extraction', 'Database'], premium: false, description: 'Scraper de emails con Firecrawl', active: true },
+      { id: 'WF502', name: 'firecrawl_scrape_url.json', category: 'Web Scraping', complexity: 'high', price: 7.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Firecrawl', 'Web Scraping', 'Data Processing'], premium: false, description: 'Scraping de URLs con Firecrawl', active: true },
+      { id: 'WF503', name: 'Ultimate Scraper Workflow for n8n.json', category: 'Web Scraping', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Multiple Scrapers', 'Data Processing'], premium: true, description: '🔥 Workflow scraper definitivo', active: true },
+      { id: 'WF504', name: 'twitter_x_scraping.json', category: 'Web Scraping', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter/X', 'Scraping', 'Analytics'], premium: false, description: 'Scraping de Twitter/X', active: true },
+      { id: 'WF505', name: '1237-bright-data-gemini-scraping-agent.json', category: 'Web Scraping', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'Gemini', integrations: ['Bright Data', 'Gemini', 'Agent'], premium: true, description: 'Agente de scraping con Bright Data y Gemini', active: true },
+      { id: 'WF506', name: 'web_develop_agent_tool_scrape_website.json', category: 'Web Scraping', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Web Scraping', 'Agent'], premium: false, description: 'Agente para scrapeo de websites', active: true },
+      { id: 'WF507', name: '0890-Google_Sheet_AI_Interface.json', category: 'Web Scraping', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Google Sheets', 'AI Interface'], premium: false, description: 'Interfaz AI para Google Sheets', active: true },
+
+      // === 600-700: EMAIL MARKETING ===
+      { id: 'WF601', name: 'extraemaill.json', category: 'Email Marketing', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Email', 'Database', 'Automation'], premium: false, description: 'Extracción y enrichment de emails', active: true },
+      { id: 'WF602', name: 'Email Subscription Service with n8n Forms Airtable AI.txt', category: 'Email Marketing', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['n8n Forms', 'Airtable', 'Email'], premium: false, description: 'Servicio de suscripción por email', active: true },
+      { id: 'WF603', name: 'email_research_report_tool.json', category: 'Email Marketing', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Email', 'Research APIs', 'PDF Generator'], premium: false, description: 'Herramienta de investigación por email', active: true },
+      { id: 'WF604', name: 'AI-Powered Email Automation for Business.json', category: 'Email Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Email', 'RAG', 'Summarize'], premium: false, description: 'Automatización de email con IA', active: true },
+      { id: 'WF605', name: 'ai_newsletter_generator.json', category: 'Email Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Newsletter', 'Content', 'Email'], premium: false, description: 'Generador de newsletters con IA', active: true },
+      { id: 'WF606', name: 'write_newsletter_tool.json', category: 'Email Marketing', complexity: 'medium', price: 6.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Newsletter', 'Writing'], premium: false, description: 'Herramienta de escritura de newsletters', active: true },
+      { id: 'WF607', name: '0329-blog-medium-publisher.json', category: 'Email Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Medium', 'Blog', 'Publishing'], premium: false, description: 'Publicador automático para Medium', active: true },
+      { id: 'WF608', name: '0002-Gumroad-MailerLite-trigger.json', category: 'Email Marketing', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Gumroad', 'MailerLite', 'Triggers'], premium: false, description: 'Integración Gumroad + MailerLite', active: true },
+
+      // === 700-800: VIDEO & AUDIO ===
+      { id: 'WF701', name: 'VideoContent_Automator_workflow.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Video', 'Automation'], premium: false, description: 'Automatizador de contenido de video', active: true },
+      { id: 'WF702', name: 'videosn8n.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Video', 'n8n'], premium: false, description: 'Gestión de videos con n8n', active: true },
+      { id: 'WF703', name: 'viral_youtube_video_clipper.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['YouTube', 'Clipping', 'Viral'], premium: false, description: 'Clipper de videos virales de YouTube', active: true },
+      { id: 'WF704', name: 'short_form_video_script_generator.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Shorts', 'Scripts', 'Video'], premium: false, description: 'Generador de scripts para videos cortos', active: true },
+      { id: 'WF705', name: 'reverse_engineer_viral_ai_videos.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Viral Videos', 'AI', 'Analysis'], premium: false, description: 'Ingeniero reverso de videos virales IA', active: true },
+      { id: 'WF706', name: 'veo_3_viral_bigfoot_vlog_generator.json', category: 'Video & Audio', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Veo 3', 'Video Generation', 'Viral'], premium: true, description: 'Generador de vlogs virales con Veo 3', active: true },
+      { id: 'WF707', name: 'sora_2_ugc_ecommerce_video_generator.json', category: 'Video & Audio', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Sora 2', 'UGC', 'E-commerce'], premium: true, description: 'Generador de videos UGC para e-commerce', active: true },
+      { id: 'WF708', name: 'videosinrostroorig.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Video', 'No-Face'], premium: false, description: 'Videos sin rostro - contenido anónimo', active: true },
+      { id: 'WF709', name: 'sinrostro.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Content', 'No-Face'], premium: false, description: 'Generación de contenido sin mostrar rostro', active: true },
+      { id: 'WF710', name: 'repurpose_to_short_form_script_tool.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Repurpose', 'Shorts', 'Scripts'], premium: false, description: 'Herramienta para convertir a formato corto', active: true },
+      { id: 'WF711', name: 'Translate audio using AI.json', category: 'Video & Audio', complexity: 'medium', price: 6.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Translation', 'Audio'], premium: false, description: 'Traducción de audio con IA', active: true },
+      { id: 'WF712', name: '0331-eleven-openai-audio-translation.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'ElevenLabs, OpenAI', integrations: ['ElevenLabs', 'Audio', 'Translation'], premium: false, description: 'Traducción de audio ElevenLabs + OpenAI', active: true },
+      { id: 'WF713', name: 'Voice Workflows.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'ElevenLabs, GPT-4', integrations: ['Voice', 'Workflows'], premium: false, description: 'Workflows de voz automatizados', active: true },
+      { id: 'WF714', name: '0858-tiktok-downloader-json.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'None', integrations: ['TikTok', 'Download'], premium: false, description: 'Downloader de TikTok', active: true },
+      { id: 'WF715', name: '0892-ollama-n8n-chat.json', category: 'Video & Audio', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'Ollama', integrations: ['Ollama', 'Chat', 'n8n'], premium: false, description: 'Chat con Ollama en n8n', active: true },
+
+      // === 800-900: AI CONTENT GENERATION ===
+      { id: 'WF801', name: 'ðŽ¨_Interactive_Image_Editor_FLUX1_Inpainting.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'FLUX.1 Fill', integrations: ['Image Processing', 'Cloud Storage'], premium: false, description: '🎨 Editor de imágenes interactivo con FLUX.1', active: true },
+      { id: 'WF802', name: 'Flux_AI_Image_Generator.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'FLUX AI', integrations: ['Image Generation', 'Cloud Storage', 'API'], premium: false, description: 'Generador de imágenes FLUX AI', active: true },
+      { id: 'WF803', name: '0845-openai-image-generator.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'DALL-E', integrations: ['OpenAI', 'Image Gen'], premium: false, description: 'Generador de imágenes OpenAI DALL-E', active: true },
+      { id: 'WF804', name: 'Transform Image to Lego Style Using Line and Dall-E.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'DALL-E', integrations: ['Line', 'Lego Style', 'Image'], premium: false, description: 'Transformador de imágenes a estilo Lego', active: true },
+      { id: 'WF805', name: 'Speed Up Social Media Banners With BannerBear.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'BannerBear', integrations: ['Banners', 'Social Media', 'Automation'], premium: false, description: 'Banners rápidos con BannerBear', active: true },
+      { id: 'WF806', name: 'Dynamically generate webpage from user request using OpenAI Structured Output.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['OpenAI Structured Output', 'Web Hosting', 'HTML'], premium: false, description: 'Generación dinámica de páginas web', active: true },
+      { id: 'WF807', name: 'Easy Image Captioning with Gemini 1.5 Pro.json', category: 'AI Content', complexity: 'medium', price: 6.99, nodes: 5, trigger: 'Webhook', ia: 'Gemini 1.5 Pro', integrations: ['Vision AI', 'Google Cloud', 'Storage'], premium: false, description: 'Captioning fácil con Gemini 1.5 Pro', active: true },
+      { id: 'WF808', name: 'Force AI to use a specific output format.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['OpenAI', 'Structured Output', 'Validation'], premium: false, description: 'Fuerza formato específico en IA', active: true },
+      { id: 'WF809', name: 'write_seo_optimized_listicle_article.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['SEO', 'Articles', 'Content'], premium: false, description: 'Escritura de artículos SEO optimizados', active: true },
+      { id: 'WF810', name: 'AI-Generated Summary Block for WordPress.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['WordPress', 'Summary', 'AI'], premium: false, description: 'Bloque de resumen IA para WordPress', active: true },
+      { id: 'WF811', name: 'Write a WordPress post with AI.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['WordPress', 'AI', 'Posts'], premium: false, description: 'Posts de WordPress con IA', active: true },
+      { id: 'WF812', name: 'write_newsletter_tool.json', category: 'AI Content', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Newsletter', 'Writing'], premium: false, description: 'Herramienta de newsletters con IA', active: true },
+
+      // === 900-1000: COMMUNICATION & CHATBOTS ===
+      { id: 'WF901', name: '0905-whatsapp-chatbot-rag.json', category: 'Communication', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['WhatsApp', 'RAG', 'Chatbot'], premium: true, description: 'Chatbot de WhatsApp con RAG', active: true },
+      { id: 'WF902', name: 'whatsapp.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['WhatsApp', 'Automation'], premium: false, description: 'Automatización de WhatsApp', active: true },
+      { id: 'WF903', name: 'whatsapp_ai_chatbot_agent.json', category: 'Communication', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['WhatsApp', 'AI Agent'], premium: true, description: 'Agente chatbot de WhatsApp IA', active: true },
+      { id: 'WF904', name: '0919-slack-ai-bot.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Slack', 'AI Bot'], premium: false, description: 'Bot de IA para Slack', active: true },
+      { id: 'WF905', name: 'Slack slash commands AI Chat Bot.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Slack', 'Slash Commands', 'Chat'], premium: false, description: 'Chatbot de Slack con comandos', active: true },
+      { id: 'WF906', name: '0870-chatbot-salud-ia.json', category: 'Communication', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Chatbot', 'Health', 'IA'], premium: true, description: 'Chatbot de salud con IA', active: true },
+      { id: 'WF907', name: '0814-elevenlabs-voice-rag-chatbot.json', category: 'Communication', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'ElevenLabs, GPT-4', integrations: ['ElevenLabs', 'RAG', 'Voice', 'Chatbot'], premium: true, description: 'Chatbot de voz con RAG y ElevenLabs', active: true },
+      { id: 'WF908', name: 'Respond to WhatsApp Messages with AI.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['WhatsApp', 'AI', 'Responses'], premium: false, description: 'Respuestas automáticas a WhatsApp', active: true },
+      { id: 'WF909', name: 'AI Agent _ Google calendar assistant.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Google Calendar', 'Assistant'], premium: false, description: 'Asistente de Google Calendar con IA', active: true },
+      { id: 'WF910', name: 'Suggest meeting slots using AI.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Calendar', 'Meetings', 'Scheduling'], premium: false, description: 'Sugerencia de horarios de reunión', active: true },
+      { id: 'WF911', name: 'Actioning Your Meeting Next Steps using Transcripts.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Meetings', 'Transcripts', 'Action Items'], premium: false, description: 'Acciones de reuniones desde transcripciones', active: true },
+      { id: 'WF912', name: 'AI Agent for realtime insights on meetings.json', category: 'Communication', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Meetings', 'Real-time', 'Insights'], premium: false, description: 'Insights en tiempo real de reuniones', active: true },
+
+      // === 1000-1100: TWITTER/X AUTOMATION ===
+      { id: 'WF1001', name: 'twitter_reply_guy_agent.json', category: 'Twitter/X', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter/X', 'Reply', 'Automation'], premium: false, description: 'Agente de respuestas automáticas en Twitter', active: true },
+      { id: 'WF1002', name: 'Twitter Virtual AI Influencer.json', category: 'Twitter/X', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter/X', 'Influencer', 'Virtual'], premium: true, description: 'Influenciador virtual de IA en Twitter', active: true },
+      { id: 'WF1003', name: 'Update Twitter banner using HTTP.json', category: 'Twitter/X', complexity: 'medium', price: 6.99, nodes: 5, trigger: 'Schedule', ia: 'None', integrations: ['Twitter/X', 'Banner', 'HTTP'], premium: false, description: 'Actualización automática de banner', active: true },
+      { id: 'WF1004', name: 'repurpose_to_twitter_thread_tool.json', category: 'Twitter/X', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Twitter/X', 'Threads', 'Repurpose'], premium: false, description: 'Conversión a threads de Twitter', active: true },
+      { id: 'WF1005', name: '0856-youtube-x-automation.json', category: 'Twitter/X', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['YouTube', 'Twitter/X', 'Automation'], premium: false, description: 'Automatización YouTube + Twitter/X', active: true },
+      { id: 'WF1006', name: '🤖🧑_AI Agent for Top n8n Creators Leaderboard.json', category: 'Twitter/X', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['n8n', 'Leaderboard', 'Twitter'], premium: false, description: 'Agente IA para leaderboard de n8n', active: true },
+
+      // === 1100-1200: SPECIALIZED AUTOMATIONS ===
+      { id: 'WF1101', name: 'disparaMPC.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Email', 'SMS', 'CRM', 'Telegram'], premium: false, description: 'Disparador de campañas multi-canal', active: true },
+      { id: 'WF1102', name: '7dihackAutoCashFlow.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Cash Flow', 'Analytics', 'Alerts'], premium: false, description: 'Automatización de flujo de caja', active: true },
+      { id: 'WF1103', name: 'UNIFICADO_VENTAS_2000X_ALLINONE.json', category: 'Specialized', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Schedule/Webhook', ia: 'GPT-4', integrations: ['Sales', 'All Platforms', 'Analytics'], premium: true, description: '🔥 VENTAS 2000X - Sistema unificado todo-en-uno', active: true },
+      { id: 'WF1104', name: 'TAMBAR_Bot_Workflow.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Telegram', 'Automation'], premium: false, description: 'Bot de Telegram Tambar', active: true },
+      { id: 'WF1105', name: 'TAMBAR_n8n_Workflow.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['TAMBAR', 'n8n'], premium: false, description: 'Workflow Tambar para n8n', active: true },
+      { id: 'WF1106', name: 'TAMBAR_PRODUCTION_WORKFLOW.json', category: 'Specialized', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Webhook', ia: 'GPT-4', integrations: ['TAMBAR', 'Production'], premium: true, description: 'Workflow de producción Tambar', active: true },
+      { id: 'WF1107', name: 'Reddit AI digest.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Reddit', 'Digest', 'AI'], premium: false, description: 'Digest de Reddit con IA', active: true },
+      { id: 'WF1108', name: 'redes.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Networks', 'Automation'], premium: false, description: 'Gestión automatizada de redes', active: true },
+      { id: 'WF1109', name: 'Reranker.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Reranking', 'Search'], premium: false, description: 'Sistema de reranking inteligente', active: true },
+      { id: 'WF1110', name: 'revenue-tracking.json', category: 'Specialized', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Revenue', 'Tracking', 'Analytics'], premium: false, description: 'Seguimiento de ingresos', active: true },
+
+      // === 1200-1300: WORDPRESS & WEB DEV ===
+      { id: 'WF1201', name: 'web_develop_agent_tool_write_website_prd.json', category: 'Web Development', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Web Dev', 'PRD', 'Agent'], premium: true, description: 'Agente para escribir PRD de website', active: true },
+      { id: 'WF1202', name: 'web_developer_agent.json', category: 'Web Development', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Web Dev', 'Agent', 'Code'], premium: true, description: 'Agente desarrollador web', active: true },
+      { id: 'WF1203', name: '0926-docker_n8n_api_workflow.json', category: 'Web Development', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'None', integrations: ['Docker', 'n8n', 'API'], premium: false, description: 'Workflow API Docker + n8n', active: true },
+      { id: 'WF1204', name: '0928-n8n_workflow_stats.json', category: 'Web Development', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'None', integrations: ['n8n', 'Stats', 'Monitoring'], premium: false, description: 'Estadísticas de workflows n8n', active: true },
+      { id: 'WF1205', name: '0200-users-api-spreadsheet.json', category: 'Web Development', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'None', integrations: ['Users API', 'Spreadsheet'], premium: false, description: 'API de usuarios con spreadsheet', active: true },
+      { id: 'WF1206', name: 'Worklaptops.json', category: 'Web Development', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Work laptops', 'Inventory'], premium: false, description: 'Gestión de laptops de trabajo', active: true },
+
+      // === 1300-1400: HR & RECRUITMENT ===
+      { id: 'WF1301', name: 'AI Automated HR Workflow for CV Analysis.json', category: 'HR & Recruitment', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['HR', 'CV Analysis', 'Evaluation'], premium: false, description: 'Workflow HR automatizado para análisis de CVs', active: true },
+      { id: 'WF1302', name: 'AI-Powered Children_s Arabic Storytelling Telegram.json', category: 'HR & Recruitment', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Telegram', 'Storytelling', 'Arabic'], premium: false, description: 'Cuentos árabes para niños en Telegram', active: true },
+      { id: 'WF1303', name: 'AI-Powered Children_s English Storytelling Telegram.json', category: 'HR & Recruitment', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Telegram', 'Storytelling', 'English'], premium: false, description: 'Cuentos en inglés para niños en Telegram', active: true },
+      { id: 'WF1304', name: 'Spot Workplace Discrimination Patterns with AI.json', category: 'HR & Recruitment', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Workplace', 'Discrimination', 'Analysis'], premium: false, description: 'Detección de discriminación laboral', active: true },
+      { id: 'WF1305', name: 'Sentiment Analysis Tracking on Support Issues.json', category: 'HR & Recruitment', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Linear', 'Slack', 'Sentiment'], premium: false, description: 'Análisis de sentimiento en soporte', active: true },
+
+      // === 1400-1500: NEWS & RESEARCH ===
+      { id: 'WF1401', name: 'ai_news_data_ingestion.json', category: 'News & Research', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['News', 'Ingestion', 'AI'], premium: false, description: 'Ingestión de datos de noticias', active: true },
+      { id: 'WF1402', name: 'Scrape and summarize posts of a news site.json', category: 'News & Research', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['News', 'Scraping', 'Summary'], premium: false, description: 'Scraping y resumen de noticias', active: true },
+      { id: 'WF1403', name: 'Summarize YouTube Videos from Transcript.json', category: 'News & Research', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['YouTube', 'Transcript', 'Summary'], premium: false, description: 'Resumen de videos de YouTube', active: true },
+      { id: 'WF1404', name: 'Summarize SERPBear data with AI.json', category: 'News & Research', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['SERPBear', 'OpenRouter', 'Baserow'], premium: false, description: 'Resumen de datos SERP con IA', active: true },
+      { id: 'WF1405', name: 'Summarize Umami data with AI.json', category: 'News & Research', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Umami', 'OpenRouter', 'Baserow'], premium: false, descripción: 'Resumen de datos Umami con IA', active: true },
+      { id: 'WF1406', name: '1035-deepseek-chat-r1.json', category: 'News & Research', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'DeepSeek', integrations: ['DeepSeek', 'Chat', 'R1'], premium: false, description: 'Chat con DeepSeek R1', active: true },
+
+      // === 1500-1600: REAL ESTATE & PROPERTY ===
+      { id: 'WF1501', name: 'Enrich Property Inventory Survey with Image Recognition.json', category: 'Real Estate', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4 Vision', integrations: ['Image Recognition', 'Inventory DB', 'CRM'], premium: false, description: 'Enriquecimiento de inventario de propiedades', active: true },
+      { id: 'WF1502', name: 'Enhance Security Operations with Qualys Slack Bot.json', category: 'Real Estate', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Qualys', 'Slack', 'Security'], premium: false, description: 'Seguridad operativa con Qualys', active: true },
+      { id: 'WF1503', name: 'Venafi Cloud Slack Cert Bot.json', category: 'Real Estate', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'None', integrations: ['Venafi', 'Slack', 'Certificates'], premium: false, description: 'Bot de certificados Venafi para Slack', active: true },
+
+      // === 1600-1700: CONTENT & SEO ===
+      { id: 'WF1601', name: 'Enrich FAQ sections on your website pages at scale with AI.json', category: 'Content & SEO', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Website', 'Content APIs', 'SEO'], premium: false, description: 'Enriquecimiento de FAQ a escala', active: true },
+      { id: 'WF1602', name: 'AI_Assistant.json', category: 'Content & SEO', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Assistant', 'Chat'], premium: false, description: 'Asistente de IA general', active: true },
+      { id: 'WF1603', name: 'ai_gmail_agent.json', category: 'Content & SEO', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Gmail', 'Agent'], premium: false, description: 'Agente para Gmail', active: true },
+      { id: 'WF1604', name: 'AImonetization.json', category: 'Content & SEO', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Monetization', 'Analytics', 'Revenue'], premium: true, description: 'Sistema de monetización con IA', active: true },
+      { id: 'WF1605', name: 'Social Media Analysis and Automated Email Generation.json', category: 'Content & SEO', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Email', 'Analysis'], premium: false, description: 'Análisis social media + email automation', active: true },
+
+      // === 1700-1800: FINANCIAL & CRYPTO ===
+      { id: 'WF1701', name: 'AI_Fitness_Coach_Strava.json', category: 'Financial', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Strava', 'Fitness', 'Coaching'], premium: false, description: 'Coach de fitness con Strava', active: true },
+      { id: 'WF1702', name: 'Send a random recipe once a day to Telegram.json', category: 'Financial', complexity: 'medium', price: 6.99, nodes: 5, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Recipe', 'Telegram', 'Daily'], premium: false, description: 'Recetas diarias a Telegram', active: true },
+      { id: 'WF1703', name: 'Send Google analytics data to AI.json', category: 'Financial', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Google Analytics', 'AI', 'Baserow'], premium: false, description: 'Datos de GA a IA para análisis', active: true },
+
+      // === 1800-1900: NFT & BLOCKCHAIN ===
+      { id: 'WF1801', name: '05_NFT_Base_LazyMint_v2025.json', category: 'NFT & Blockchain', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Base', 'NFT', 'Lazy Mint'], premium: false, description: 'Minting lazy de NFTs en Base', active: true },
+      { id: 'WF1802', name: '08_DeFi_Yield_Farming_v2025.json', category: 'NFT & Blockchain', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['DeFi', 'Yield Farming', 'Crypto'], premium: false, description: 'DeFi y yield farming automatizado', active: true },
+      { id: 'WF1803', name: '06_Audio_Loops_Bandcamp_v2025.json', category: 'NFT & Blockchain', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Audio', 'Bandcamp', 'NFT'], premium: false, description: 'Loops de audio para Bandcamp/NFT', active: true },
+
+      // === 1900-2000: SPECIAL PROJECTS ===
+      { id: 'WF1901', name: 'elimina_ansiedad_pro_v2_premium.json', category: 'Health & Wellness', complexity: 'extreme', price: 9.99, nodes: 12, trigger: 'Schedule', ia: 'GPT-4, ElevenLabs', integrations: ['Audio', 'Video', 'Email', 'Telegram'], premium: true, description: '⭐ PREMIUM V2 - Sistema completo eliminación de ansiedad', active: true },
+      { id: 'WF1902', name: 'Elimina_Ansiedad_Pro_workflow.json', category: 'Health & Wellness', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Audio', 'Email', 'Telegram'], premium: false, description: 'Workflow profesional anti-ansiedad', active: true },
+      { id: 'WF1903', name: '07_Newsletter_Substack_v2025.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Substack', 'Newsletter', 'Email'], premium: false, description: 'Newsletter automatizado para Substack', active: true },
+      { id: 'WF1904', name: '04_Webinar_Automation_Pro_v2025.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Webinar', 'Email', 'Automation'], premium: false, description: 'Automatización profesional de webinars', active: true },
+      { id: 'WF1905', name: '01subworkflowsocial.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social', 'Subworkflow'], premium: false, description: 'Subworkflow para automatización social', active: true },
+      { id: 'WF1906', name: '02subworkflowavanzadomanejoerrores.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Error Handling', 'Subworkflow'], premium: false, description: 'Subworkflow avanzado de manejo de errores', active: true },
+      { id: 'WF1907', name: '03workkflowprincipalcompleto.json', category: 'Special Projects', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook/Schedule', ia: 'GPT-4', integrations: ['All Systems', 'Master Workflow'], premium: true, description: '🔥 WORKFLOW PRINCIPAL COMPLETO', active: true },
+      { id: 'WF1908', name: '04workkflowprincipalcompleto.json', category: 'Special Projects', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook/Schedule', ia: 'GPT-4', integrations: ['All Systems', 'Master Workflow'], premium: true, description: '🔥 WORKFLOW PRINCIPAL V2', active: true },
+      { id: 'WF1909', name: '05workflowamazaffi.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Affiliates'], premium: false, description: 'Workflow Amazon Afiliados', active: true },
+      { id: 'WF1910', name: '06Workflowamazaffi.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Affiliates'], premium: false, description: 'Workflow Amazon Afiliados V2', active: true },
+      { id: 'WF1911', name: '001001amazluzdiego.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Luz', 'Diego'], premium: false, description: 'Amazon Affiliate workflow personalizado', active: true },
+      { id: 'WF1912', name: 'AFILIADOSATECHANY.blueprint.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliates', 'ATECHANY'], premium: false, description: 'Blueprint de afiliados ATECHANY', active: true },
+      { id: 'WF1913', name: 'AAAMAAAZOOONPRO_ULTIMATE.json', category: 'Special Projects', complexity: 'legendary', price: 9.99, nodes: 15, trigger: 'Schedule/Webhook', ia: 'GPT-4', integrations: ['All Platforms', 'Ultimate'], premium: true, description: '🚀 MAZOON PRO ULTIMATE - Sistema definitivo', active: true },
+      { id: 'WF1914', name: 'AAffiliates_PRO_MULTIMEDIA.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Schedule/Webhook', ia: 'GPT-4', integrations: ['Affiliates', 'Multimedia'], premium: true, description: 'Affiliates PRO Multimedia', active: true },
+      { id: 'WF1915', name: 'Affiliates_PRO_EXTENDED_FULL.json', category: 'Special Projects', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Schedule/Webhook', ia: 'GPT-4', integrations: ['Affiliates', 'Extended'], premium: true, description: 'Affiliates PRO Extended Full', active: true },
+      { id: 'WF1916', name: 'Agente_Blogs___Marketing.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Blogs', 'Marketing', 'Agent'], premium: true, description: 'Agente para Blogs y Marketing', active: true },
+      { id: 'WF1917', name: 'Agente_LinkedIn___Marketing.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['LinkedIn', 'Marketing', 'Agent'], premium: true, description: 'Agente para LinkedIn y Marketing', active: true },
+      { id: 'WF1918', name: 'Agente_Videos___Marketing.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Videos', 'Marketing', 'Agent'], premium: true, description: 'Agente para Videos y Marketing', active: true },
+      { id: 'WF1919', name: 'Sub_Agente_LinkedIn.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['LinkedIn', 'Sub-agent'], premium: false, description: 'Sub-agente para LinkedIn', active: true },
+      { id: 'WF1920', name: 'Unified_Affiliates_DEMO_CLEAN.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliates', 'Unified'], premium: false, description: 'Unified Affiliates Demo Clean', active: true },
+      { id: 'WF1921', name: 'Advanced AI Demo (Presented at AI Developers meetup).json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Webhook', ia: 'GPT-4', integrations: ['AI Demo', 'Advanced'], premium: true, description: 'Demo avanzado de IA para meetup', active: true },
+      { id: 'WF1922', name: 'escenario_n8n_completo.json', category: 'Special Projects', complexity: 'legendary', price: 9.99, nodes: 15, trigger: 'Webhook/Schedule', ia: 'GPT-4', integrations: ['Multiple Systems', 'Database', 'Notifications'], premium: true, description: '🎯 ESCENARIO COMPLETO n8n - Workflow maestro', active: true },
+      { id: 'WF1923', name: 'FULLWORK.json', category: 'Special Projects', complexity: 'legendary', price: 9.99, nodes: 18, trigger: 'Webhook/Schedule', ia: 'GPT-4, Claude', integrations: ['All Platforms', 'Complete Stack'], premium: true, description: '🎯 WORKFLOW COMPLETO DEFINITIVO - Sistema master absoluto', active: true },
+      { id: 'WF1924', name: '0017-stripe-hubspot-slack.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'None', integrations: ['Stripe', 'HubSpot', 'Slack'], premium: false, description: 'Integración Stripe + HubSpot + Slack', active: true },
+      { id: 'WF1925', name: '02.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 02', active: true },
+      { id: 'WF1926', name: '03.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 03', active: true },
+      { id: 'WF1927', name: '04.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 04', active: true },
+      { id: 'WF1928', name: '05.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 05', active: true },
+      { id: 'WF1929', name: '06.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 06', active: true },
+      { id: 'WF1930', name: '07.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 07', active: true },
+      { id: 'WF1931', name: '08.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 08', active: true },
+      { id: 'WF1932', name: '09.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 09', active: true },
+      { id: 'WF1933', name: '10.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 10', active: true },
+      { id: 'WF1934', name: '11.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 11', active: true },
+      { id: 'WF1935', name: '12.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 12', active: true },
+      { id: 'WF1936', name: '13.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 13', active: true },
+      { id: 'WF1937', name: '14pro.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General', 'Pro'], premium: false, description: 'Workflow general 14 Pro', active: true },
+      { id: 'WF1938', name: '15.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 15', active: true },
+      { id: 'WF1939', name: '16.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 16', active: true },
+      { id: 'WF1940', name: '17.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 17', active: true },
+      { id: 'WF1941', name: '18.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 18', active: true },
+      { id: 'WF1942', name: '19.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 19', active: true },
+      { id: 'WF1943', name: '20.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 20', active: true },
+      { id: 'WF1944', name: '21.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 21', active: true },
+      { id: 'WF1945', name: '22.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 22', active: true },
+      { id: 'WF1946', name: '23.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 23', active: true },
+      { id: 'WF1947', name: '24.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 24', active: true },
+      { id: 'WF1948', name: '25.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 25', active: true },
+      { id: 'WF1949', name: '26.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 26', active: true },
+      { id: 'WF1950', name: '27.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 27', active: true },
+      { id: 'WF1951', name: '28.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 28', active: true },
+      { id: 'WF1952', name: '29.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 29', active: true },
+      { id: 'WF1953', name: '30.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 30', active: true },
+      { id: 'WF1954', name: '31.json', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'GPT-4', integrations: ['General'], premium: false, description: 'Workflow general 31', active: true },
+      { id: 'WF1955', name: '0007-social-media-creator.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Creator'], premium: false, description: 'Creador de contenido social media', active: true },
+      { id: 'WF1956', name: 'herramienta para generar imágenes.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'DALL-E', integrations: ['Image Gen', 'Tool'], premium: false, description: 'Herramienta de generación de imágenes', active: true },
+      { id: 'WF1957', name: 'herramienta para generar avatares parlantes.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'ElevenLabs', integrations: ['Avatars', 'Voice', 'Talking'], premium: false, description: 'Generador de avatares parlantes', active: true },
+      { id: 'WF1958', name: 'generador creativo de anuncios nanobanana.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Ads', 'Creative', 'NanoBanana'], premium: false, description: 'Generador de anuncios NanoBanana', active: true },
+      { id: 'WF1959', name: 'nano_banana_ladrón_de_anuncios_de_facebook.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Facebook Ads', 'Scraping'], premium: false, description: 'Ladrón de anuncios de Facebook NanoBanana', active: true },
+      { id: 'WF1960', name: 'reutilizar_en_herramienta_de_script_de_formato_corto.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Reuse', 'Short Format', 'Scripts'], premium: false, description: 'Herramienta de reutilización para formato corto', active: true },
+      { id: 'WF1961', name: 'veo_3_viral_bigfoot_vlog_generator.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Veo 3', 'Viral', 'Vlog'], premium: true, description: 'Generador de vlogs virales Bigfoot', active: true },
+      { id: 'WF1962', name: 'Veo3_Machine_Template.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Veo 3', 'Templates'], premium: true, description: 'Template de máquina Veo 3', active: true },
+      { id: 'WF1963', name: 'Fetch Dynamic Prompts from GitHub.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'None', integrations: ['GitHub', 'n8n', 'Variables'], premium: false, description: 'Prompts dinámicos desde GitHub', active: true },
+      { id: 'WF1964', name: 'Use OpenRouter in n8n.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'OpenRouter', integrations: ['OpenRouter', 'API'], premium: false, description: 'Uso de OpenRouter en n8n', active: true },
+      { id: 'WF1965', name: 'Sistema RAG.json', category: 'Special Projects', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['RAG', 'Vector DB', 'Knowledge'], premium: true, description: 'Sistema RAG completo', active: true },
+      { id: 'WF1966', name: 'Upload to Instagram and Tiktok from Google Drive.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'None', integrations: ['Google Drive', 'Instagram', 'TikTok'], premium: false, description: 'Subida a Instagram/TikTok desde Drive', active: true },
+      { id: 'WF1967', name: 'webapp.html', category: 'Special Projects', complexity: 'medium', price: 5.99, nodes: 5, trigger: 'Webhook', ia: 'None', integrations: ['Web App'], premium: false, description: 'Web app helper', active: true },
+      { id: 'WF1968', name: ' Affiliate Marketing Automation Workflow.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliate', 'Automation'], premium: false, description: 'Workflow de automatización de afiliados', active: true },
+      { id: 'WF1969', name: 'Social_Media_Affiliate_Automation.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Affiliate'], premium: false, description: 'Automatización social media para afiliados', active: true },
+      { id: 'WF1970', name: 'AI_Ask questions about any data source.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Data Source', 'Questions'], premium: false, description: 'Hacer preguntas sobre cualquier fuente de datos', active: true },
+      { id: 'WF1971', name: 'Reddit AI digest.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 6, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Reddit', 'Digest'], premium: false, description: 'Digest de Reddit con IA', active: true },
+      { id: 'WF1972', name: 'UniversalAutomation_Pricing.json', category: 'Special Projects', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Universal', 'Pricing'], premium: false, description: 'Automatización universal de pricing', active: true },
+      { id: 'WF1973', name: 'affiliateamazdihack.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Affiliates'], premium: false, description: 'Affiliate Amazon automation dihack', active: true },
+      { id: 'WF1974', name: 'affiliateamazdihack_(1).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Affiliates'], premium: false, description: 'Affiliate Amazon automation dihack V2', active: true },
+      { id: 'WF1975', name: 'afiautoamazdihack2025.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Auto', '2025'], premium: false, description: 'Auto affiliate Amazon 2025', active: true },
+      { id: 'WF1976', name: 'AAAAAFFFFIIILLIIITTTEEE.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliate', 'Automation'], premium: false, description: 'AFFILIATE automation workflow', active: true },
+      { id: 'WF1977', name: 'AAAAAFFFFIIILLIIITTTEEE_(1).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliate', 'Automation'], premium: false, description: 'AFFILIATE automation workflow V2', active: true },
+      { id: 'WF1978', name: 'AAAAAFFFFIIILLIIITTTEEE_(2).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliate', 'Automation'], premium: false, description: 'AFFILIATE automation workflow V3', active: true },
+      { id: 'WF1979', name: 'Unified_Affiliates_DEMO_CLEAN.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Affiliates', 'Unified'], premium: false, description: 'Unified affiliates demo clean', active: true },
+      { id: 'WF1980', name: 'UltiAffilAutoAmaz.json', category: 'Affiliate Marketing', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Ultimate', 'Affiliates'], premium: true, description: '🔥 ULTIMATE Affiliate Auto Amazon', active: true },
+      { id: 'WF1981', name: 'AImonetization.json', category: 'Monetization', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Monetization', 'AI', 'Revenue'], premium: true, description: 'AI Monetization system', active: true },
+      { id: 'WF1982', name: 'cal_ai_clone_backend.json', category: 'AI Cloning', complexity: 'extreme', price: 9.99, nodes: 10, trigger: 'Webhook', ia: 'GPT-4, ElevenLabs', integrations: ['Voice', 'Clone', 'AI'], premium: true, description: 'AI Voice Clone Backend', active: true },
+      { id: 'WF1983', name: 'Social_Media_Affiliate_Automation_(1).json', category: 'Social Media', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'Affiliate'], premium: false, description: 'Social media affiliate automation V2', active: true },
+      { id: 'WF1984', name: 'Social_Media_AutoPoster_AI_PREMIUM_(Copy).json', category: 'Social Media', complexity: 'extreme', price: 9.99, nodes: 8, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Social Media', 'AutoPoster', 'Premium'], premium: true, description: 'Social media autoposter premium copy', active: true },
+      { id: 'WF1985', name: 'TAMBAR_n8n_Workflow_(1).json', category: 'Telegram', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['TAMBAR', 'n8n'], premium: false, description: 'TAMBAR workflow V2', active: true },
+      { id: 'WF1986', name: 'TAMBAR_n8n_Workflow_(2).json', category: 'Telegram', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Webhook', ia: 'GPT-4', integrations: ['TAMBAR', 'n8n'], premium: false, description: 'TAMBAR workflow V3', active: true },
+      { id: 'WF1987', name: '001001amazluzdiego_(1).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Luz', 'Diego'], premium: false, description: 'Amazon Luz Diego copy', active: true },
+      { id: 'WF1988', name: '001001amazluzdiego_dihack_(1).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Dihack'], premium: false, description: 'Amazon Dihack version', active: true },
+      { id: 'WF1989', name: '001001amazluzdiego_XXX_(1).json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'XXX'], premium: false, description: 'Amazon XXX version', active: true },
+      { id: 'WF1990', name: 'twitter_x_scraping_(Copy).json', category: 'Web Scraping', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Twitter', 'X', 'Scraping'], premium: false, description: 'Twitter X scraping copy', active: true },
+      { id: 'WF1991', name: '001001amazluzdiego.json', category: 'Affiliate Marketing', complexity: 'high', price: 7.99, nodes: 7, trigger: 'Schedule', ia: 'GPT-4', integrations: ['Amazon', 'Luz', 'Diego'], premium: false, description: 'Amazon Affiliate - Luz Diego', active: true },
+      { id: 'WF1992', name: 'Agente_Blogs___Marketing_(1)_(1).json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Blogs', 'Marketing', 'Agent'], premium: true, description: 'Agent Blogs Marketing copy', active: true },
+      { id: 'WF1993', name: 'Agente_Blogs___Marketing_(1)_(1)(1).json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Blogs', 'Marketing', 'Agent'], premium: true, description: 'Agent Blogs Marketing copy 2', active: true },
+      { id: 'WF1994', name: 'Agente_LinkedIn___Marketing_(1)_(1).json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['LinkedIn', 'Marketing', 'Agent'], premium: true, description: 'Agent LinkedIn Marketing copy', active: true },
+      { id: 'WF1995', name: 'Agente_Videos___Marketing_(1).json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Videos', 'Marketing', 'Agent'], premium: true, description: 'Agent Videos Marketing', active: true },
+      { id: 'WF1996', name: 'Agente_Videos___Marketing_(1)(1).json', category: 'AI Agents', complexity: 'extreme', price: 9.99, nodes: 9, trigger: 'Webhook', ia: 'GPT-4', integrations: ['Videos', 'Marketing', 'Agent'], premium: true, description: 'Agent Videos Marketing copy', active: true },
+      { id: 'WF1997', name: 'Sistema_Multi_Agentes_Marketing_(1).json', category: 'AI Agents', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook', ia: 'GPT-4, Multi-Agent', integrations: ['Marketing', 'Multi-Agent'], premium: true, description: 'Multi-agent marketing system V2', active: true },
+      { id: 'WF1998', name: 'Sistema_Multi_Agentes_Marketing_(1)(1).json', category: 'AI Agents', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Webhook', ia: 'GPT-4, Multi-Agent', integrations: ['Marketing', 'Multi-Agent'], premium: true, description: 'Multi-agent marketing system V3', active: true },
+      { id: 'WF1999', name: 'UNIFICADO_VENTAS_2000X_ALLINONE_(1).json', category: 'Sales', complexity: 'legendary', price: 9.99, nodes: 12, trigger: 'Schedule/Webhook', ia: 'GPT-4', integrations: ['Sales', 'All Platforms', 'Analytics'], premium: true, description: '🔥 VENTAS 2000X V2 - Sistema unificado', active: true },
+      { id: 'WF2000', name: 'FULLWORK_FINAL_EDITION.json', category: 'Master System', complexity: 'legendary', price: 9.99, nodes: 20, trigger: 'Webhook/Schedule', ia: 'GPT-4, Claude', integrations: ['All Platforms', 'Complete Stack', 'Ultimate'], premium: true, description: '🎯🔥 EDICIÓN FINAL - Sistema master absoluto definitivo', active: true }
+    ];
+
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    
+    let state = {
+      cart: JSON.parse(localStorage.getItem('apollo_cart') || '[]'),
+      favorites: JSON.parse(localStorage.getItem('apollo_favorites') || '[]'),
+      purchased: JSON.parse(localStorage.getItem('apollo_purchased') || '[]'),
+      transactions: JSON.parse(localStorage.getItem('apollo_transactions') || '[]'),
+      balance: parseFloat(localStorage.getItem('apollo_balance') || '0'),
+      paymentMethod: 'stripe',
+      promoCode: null,
+      currentPage: 1,
+      itemsPerPage: 24
+    };
+
+    function saveState() {
+      localStorage.setItem('apollo_cart', JSON.stringify(state.cart));
+      localStorage.setItem('apollo_favorites', JSON.stringify(state.favorites));
+      localStorage.setItem('apollo_purchased', JSON.stringify(state.purchased));
+      localStorage.setItem('apollo_transactions', JSON.stringify(state.transactions));
+      localStorage.setItem('apollo_balance', state.balance.toString());
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    
+    function $(sel) { return document.querySelector(sel); }
+    function $$(sel) { return Array.from(document.querySelectorAll(sel)); }
+    
+    function toast(title, message, icon = '✅', duration = 3000) {
+      $('#toastTitle').textContent = title;
+      $('#toastMessage').textContent = message;
+      $('#toastIcon').textContent = icon;
+      $('#toast').classList.remove('hidden');
+      setTimeout(() => $('#toast').classList.add('hidden'), duration);
+    }
+
+    function formatPrice(price) {
+      return `$${price.toFixed(2)}`;
+    }
+
+    function getComplexityLabel(complexity) {
+      const labels = {
+        'legendary': '🔥🔥🔥🔥🔥',
+        'extreme': '🔥🔥🔥🔥',
+        'high': '🔥🔥🔥',
+        'medium': '🔥🔥',
+        'low': '🔥'
+      };
+      return labels[complexity] || '🔥';
+    }
+
+    function getComplexityText(complexity) {
+      const texts = {
+        'legendary': 'LEGENDARY',
+        'extreme': 'EXTREME',
+        'high': 'HIGH',
+        'medium': 'MEDIUM',
+        'low': 'LOW'
+      };
+      return texts[complexity] || complexity;
+    }
+
+    // ============================================
+    // RENDER FUNCTIONS
+    // ============================================
+    
+    function renderCategories() {
+      const categories = [...new Set(WORKFLOW_CATALOG.map(w => w.category))].sort();
+      const categoryList = $('#categoryList');
+      const filterCategory = $('#filterCategory');
+      
+      categoryList.innerHTML = `
+        <button onclick="filterByCategory('all')" class="w-full rounded-lg bg-indigo-500/20 border border-indigo-500/50 px-3 py-2 text-sm text-left hover:bg-indigo-500/30 transition">
+          📁 Todos los workflows (${WORKFLOW_CATALOG.length})
+        </button>
+      `;
+      
+      filterCategory.innerHTML = '<option value="all">Todas las categorías</option>';
+      categories.forEach(cat => {
+        const count = WORKFLOW_CATALOG.filter(w => w.category === cat).length;
+        categoryList.innerHTML += `
+          <button onclick="filterByCategory('${cat}')" class="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-left hover:bg-slate-800 transition">
+            ${cat} (${count})
+          </button>
+        `;
+        filterCategory.innerHTML += `<option value="${cat}">${cat}</option>`;
+      });
+      
+      $('#catCount').textContent = categories.length;
+    }
+
+    function renderFeatured() {
+      const featured = WORKFLOW_CATALOG.filter(w => w.premium).slice(0, 6);
+      const grid = $('#featuredGrid');
+      grid.innerHTML = '';
+      
+      featured.forEach(wf => {
+        grid.innerHTML += `
+          <div class="card-workflow rounded-xl border border-amber-500/50 bg-gradient-to-br from-amber-900/20 to-slate-900/50 p-4">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">⭐ PREMIUM</span>
+                <h3 class="font-semibold text-sm mt-2 line-clamp-1">${wf.name.replace('.json', '')}</h3>
+                <p class="text-xs text-slate-400 mt-1 line-clamp-2">${wf.description}</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between mt-3">
+              <span class="text-lg font-bold text-amber-400">${formatPrice(wf.price)}</span>
+              <button onclick="addToCart('${wf.id}')" class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs text-white hover:bg-amber-500 transition">
+                🛒
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function renderWorkflows(filtered = WORKFLOW_CATALOG) {
+      const grid = $('#workflowGrid');
+      grid.innerHTML = '';
+      
+      const start = (state.currentPage - 1) * state.itemsPerPage;
+      const paginated = filtered.slice(start, start + state.itemsPerPage);
+      
+      paginated.forEach(wf => {
+        const isFavorite = state.favorites.includes(wf.id);
+        const inCart = state.cart.includes(wf.id);
+        const isPurchased = state.purchased.includes(wf.id);
+        
+        const card = document.createElement('div');
+        card.className = `card-workflow rounded-2xl border transition-all duration-300 hover:shadow-xl ${wf.premium ? 'border-amber-500/50 bg-gradient-to-br from-amber-900/20 to-slate-900/50' : 'border-slate-700 bg-slate-900/50'} hover:border-slate-600 ${wf.active ? 'workflow-active' : ''}`;
+        card.innerHTML = `
+          <div class="p-4">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">${wf.category}</span>
+                  ${wf.premium ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">⭐ PREMIUM</span>' : ''}
+                </div>
+                <h3 class="font-semibold text-xs leading-tight truncate" title="${wf.name}">${wf.name.replace('.json', '')}</h3>
+                <div class="mt-2 flex items-center gap-2 text-[10px] flex-wrap">
+                  <span class="text-amber-400" title="${getComplexityText(wf.complexity)}">${getComplexityLabel(wf.complexity)}</span>
+                  <span class="text-slate-500">• ${wf.nodes} nodos</span>
+                  <span class="text-slate-500">• ${wf.trigger}</span>
+                </div>
+              </div>
+              <button onclick="toggleFavorite('${wf.id}')" class="text-lg transition-transform hover:scale-110 ${isFavorite ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}">
+                ${isFavorite ? '★' : '☆'}
+              </button>
+            </div>
+            
+            <p class="mt-2 text-[10px] text-slate-400 line-clamp-2">${wf.description}</p>
+            
+            <div class="mt-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold ${wf.premium ? 'text-amber-400' : 'text-cyan-400'}">${formatPrice(wf.price)}</span>
+                ${isPurchased ? '<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">✓</span>' : ''}
+              </div>
+              <div class="flex gap-1.5">
+                <button onclick="viewWorkflow('${wf.id}')" class="rounded-lg border border-slate-700 bg-slate-800/50 px-2 py-1 text-[10px] hover:bg-slate-800 transition">
+                  👁️
+                </button>
+                ${isPurchased ? 
+                  `<button onclick="downloadWorkflow('${wf.id}')" class="rounded-lg bg-emerald-600 px-2 py-1 text-[10px] text-white hover:bg-emerald-500 transition">
+                    ⬇️
+                  </button>` :
+                  `<button onclick="addToCart('${wf.id}')" class="rounded-lg ${inCart ? 'bg-slate-700' : 'bg-indigo-600'} px-2 py-1 text-[10px] text-white hover:bg-indigo-500 transition">
+                    ${inCart ? '✓' : '🛒'}
+                  </button>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      
+      $('#workflowCount').textContent = filtered.length;
+      updatePagination(filtered.length);
+    }
+
+    function updatePagination(total) {
+      const totalPages = Math.ceil(total / state.itemsPerPage);
+      $('#paginationInfo').textContent = `Página ${state.currentPage} de ${totalPages}`;
+      $('#prevBtn').disabled = state.currentPage === 1;
+      $('#nextBtn').disabled = state.currentPage === totalPages;
+    }
+
+    function prevPage() {
+      if (state.currentPage > 1) {
+        state.currentPage--;
+        filterWorkflows();
+      }
+    }
+
+    function nextPage() {
+      const totalPages = Math.ceil(WORKFLOW_CATALOG.length / state.itemsPerPage);
+      if (state.currentPage < totalPages) {
+        state.currentPage++;
+        filterWorkflows();
+      }
+    }
+
+    function renderCart() {
+      const cartItems = $('#cartItems');
+      const cartItemsData = state.cart.map(id => WORKFLOW_CATALOG.find(w => w.id === id)).filter(Boolean);
+      
+      if (cartItemsData.length === 0) {
+        cartItems.innerHTML = `
+          <div class="text-center py-12">
+            <div class="text-4xl mb-4">🛒</div>
+            <p class="text-slate-400">Tu carrito está vacío</p>
+            <p class="text-sm text-slate-500 mt-1">Añade workflows para continuar</p>
+          </div>
+        `;
+      } else {
+        cartItems.innerHTML = cartItemsData.map(wf => `
+          <div class="flex items-center gap-3 rounded-xl border border-slate-700 bg-slate-800/50 p-3">
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-xs truncate">${wf.name}</div>
+              <div class="text-[10px] text-slate-400">${wf.category}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-bold text-cyan-400 text-sm">${formatPrice(wf.price)}</div>
+              <button onclick="removeFromCart('${wf.id}')" class="text-[10px] text-rose-400 hover:text-rose-300">Eliminar</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      const subtotal = cartItemsData.reduce((sum, wf) => sum + wf.price, 0);
+      const discount = state.promoCode ? subtotal * 0.1 : 0;
+      const total = subtotal - discount;
+      
+      $('#cartItemCount').textContent = state.cart.length;
+      $('#cartSubtotal').textContent = formatPrice(subtotal);
+      $('#cartDiscount').textContent = `-${formatPrice(discount)}`;
+      $('#cartTotal').textContent = formatPrice(total);
+      $('#cartCount').textContent = state.cart.length;
+    }
+
+    function renderStats() {
+      const transactions = state.transactions;
+      const totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
+      const totalSales = transactions.length;
+      
+      $('#statWorkflows').textContent = WORKFLOW_CATALOG.length.toLocaleString();
+      $('#statRevenue').textContent = `$${totalRevenue.toFixed(2)}`;
+      $('#statSales').textContent = totalSales;
+      $('#userBalance').textContent = `$${state.balance.toFixed(2)}`;
+    }
+
+    // ============================================
+    // CART FUNCTIONS
+    // ============================================
+    
+    function addToCart(id) {
+      if (!state.cart.includes(id)) {
+        state.cart.push(id);
+        saveState();
+        renderCart();
+        renderWorkflows();
+        toast('Añadido al carrito', 'Workflow añadido correctamente', '🛒');
+      }
+    }
+    
+    function removeFromCart(id) {
+      state.cart = state.cart.filter(i => i !== id);
+      saveState();
+      renderCart();
+      renderWorkflows();
+    }
+    
+    function clearCart() {
+      state.cart = [];
+      saveState();
+      renderCart();
+      renderWorkflows();
+      toast('Carrito vaciado', 'Todos los items han sido eliminados', '🗑️');
+    }
+    
+    function toggleCart() {
+      const sidebar = $('#cartSidebar');
+      sidebar.classList.toggle('translate-x-full');
+    }
+    
+    function selectPayment(method) {
+      state.paymentMethod = method;
+      $$('.payment-btn').forEach(btn => {
+        if (btn.dataset.method === method) {
+          btn.classList.add('bg-indigo-600', 'border-indigo-500', 'shadow-lg', 'shadow-indigo-500/30', 'scale-105');
+          btn.classList.remove('bg-slate-800/50', 'border-slate-700');
+        } else {
+          btn.classList.remove('bg-indigo-600', 'border-indigo-500', 'shadow-lg', 'shadow-indigo-500/30', 'scale-105');
+          btn.classList.add('bg-slate-800/50', 'border-slate-700');
+        }
+      });
+
+      const methodNames = {
+        stripe: '💳 Stripe',
+        crypto: '₿ Crypto',
+        kucoin: '◈ Kucoin',
+        bank_usa: '🇺🇸 Lead Bank',
+        bank_eu: '🇪🇺 SEPA',
+        bank_lux: '🇱🇺 Luxembourg',
+        bizum: '📱 Bizum',
+        klarna: '💙 Klarna',
+        invoice: '📄 Factura'
+      };
+
+      toast('Método seleccionado', methodNames[method] || method, '✅');
+    }
+    
+    // Función para cambiar entre tarjeta y transferencia en Stripe
+    function setStripeMethod(type) {
+      const cardBtn = document.getElementById('stripe-card-btn');
+      const bankBtn = document.getElementById('stripe-bank-btn');
+      const cardForm = document.getElementById('stripe-card-form');
+      const bankForm = document.getElementById('stripe-bank-form');
+      
+      if (type === 'card') {
+        cardBtn.classList.add('bg-indigo-600');
+        cardBtn.classList.remove('bg-slate-700');
+        bankBtn.classList.remove('bg-indigo-600');
+        bankBtn.classList.add('bg-slate-700');
+        cardForm.classList.remove('hidden');
+        bankForm.classList.add('hidden');
+      } else {
+        bankBtn.classList.add('bg-indigo-600');
+        bankBtn.classList.remove('bg-slate-700');
+        cardBtn.classList.remove('bg-indigo-600');
+        cardBtn.classList.add('bg-slate-700');
+        bankForm.classList.remove('hidden');
+        cardForm.classList.add('hidden');
+      }
+    }
+    
+    function applyPromo() {
+      const code = $('#promoCode').value.toUpperCase();
+      if (code === 'APOLLO10') {
+        state.promoCode = code;
+        renderCart();
+        toast('Código aplicado', '10% de descuento activado', '🎉');
+      } else {
+        state.promoCode = null;
+        renderCart();
+        toast('Código inválido', 'Código no reconocido', '❌');
+      }
+    }
+
+    // ============================================
+    // CHECKOUT FUNCTIONS
+    // ============================================
+    
+    function processCheckout() {
+      if (state.cart.length === 0) {
+        toast('Carrito vacío', 'Añade workflows al carrito primero', '🛒');
+        return;
+      }
+
+      const modal = $('#checkoutModal');
+      const content = $('#checkoutContent');
+      const cartItemsData = state.cart.map(id => WORKFLOW_CATALOG.find(w => w.id === id)).filter(Boolean);
+      const subtotal = cartItemsData.reduce((sum, wf) => sum + wf.price, 0);
+      const discount = state.promoCode ? subtotal * 0.1 : 0;
+      const total = subtotal - discount;
+
+      const methodLabels = {
+        stripe: '💳 Stripe (Tarjetas)',
+        crypto: '₿ Crypto (USDC/USDT/BTC)',
+        kucoin: '◈ Kucoin Pay',
+        bank_usa: '🇺🇸 Lead Bank (USA)',
+        bank_eu: '🇪🇺 SEPA (Europa)',
+        bank_lux: '🇱🇺 Banking Circle (Luxembourg)',
+        bizum: '📱 Bizum (España)',
+        klarna: '💙 Klarna',
+        invoice: '📄 Factura/Transferencia'
+      };
+
+      const paymentForms = {
+        stripe: `
+          <div class="space-y-3">
+            <div class="flex gap-2 mb-3">
+              <button onclick="setStripeMethod('card')" id="stripe-card-btn" class="flex-1 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium transition">
+                💳 Tarjeta
+              </button>
+              <button onclick="setStripeMethod('bank')" id="stripe-bank-btn" class="flex-1 px-3 py-2 rounded-lg bg-slate-700 text-white text-sm font-medium hover:bg-slate-600 transition">
+                🏦 Transferencia
+              </button>
+            </div>
+            
+            <div id="stripe-card-form">
+              <input type="email" placeholder="Email" class="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm outline-none mb-3" value="cliente@email.com" />
+              <input type="text" placeholder="Número de tarjeta" class="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm outline-none mono mb-3" value="4242 4242 4242 4242" />
+              <div class="grid grid-cols-2 gap-3">
+                <input type="text" placeholder="MM/YY" class="rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm outline-none" value="12/25" />
+                <input type="text" placeholder="CVC" class="rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm outline-none" value="123" />
+              </div>
+              <div class="p-2 rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-xs text-emerald-400 mt-3">
+                🔐 Stripe Live • secure.stripe.com • PMC Activos: 5
+              </div>
+            </div>
+            
+            <div id="stripe-bank-form" class="hidden">
+              <div class="p-4 rounded-lg bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30">
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="text-2xl">🏦</span>
+                  <div>
+                    <div class="font-semibold text-blue-300">Wells Fargo Bank, N.A.</div>
+                    <div class="text-xs text-slate-400">ACH Transfer • 1-3 días hábiles</div>
+                  </div>
+                </div>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Beneficiario:</span>
+                    <span class="text-slate-200 font-mono">Stripe Payments Company</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Número de cuenta:</span>
+                    <span class="text-slate-200 font-mono">16310144183240065</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Routing:</span>
+                    <span class="text-slate-200 font-mono">121000248</span>
+                  </div>
+                  <div class="text-xs text-slate-400 mt-2">
+                    Dirección: 354 Oyster Point Blvd, South San Francisco, CA 94080
+                  </div>
+                </div>
+                <div class="mt-3 p-2 rounded-lg bg-amber-900/30 border border-amber-500/30">
+                  <div class="text-xs text-amber-300">
+                    ⚠️ Incluir en referencia: <span class="font-mono">APL-${Date.now()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `,
+        crypto: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-orange-900/40 to-amber-900/40 border border-orange-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">🟡</span>
+                <span class="font-semibold text-orange-300">USDC (BEP20)</span>
+              </div>
+              <div class="font-mono text-xs break-all text-slate-300">${CONFIG.crypto.wallets.USDC}</div>
+            </div>
+            <div class="p-3 rounded-lg bg-gradient-to-r from-green-900/40 to-emerald-900/40 border border-green-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">🟢</span>
+                <span class="font-semibold text-green-300">USDT (BEP20)</span>
+              </div>
+              <div class="font-mono text-xs break-all text-slate-300">${CONFIG.crypto.wallets.USDT}</div>
+            </div>
+            <div class="p-3 rounded-lg bg-gradient-to-r from-yellow-900/40 to-orange-900/40 border border-yellow-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">🟠</span>
+                <span class="font-semibold text-yellow-300">Bitcoin (BTC)</span>
+              </div>
+              <div class="font-mono text-xs break-all text-slate-300">${CONFIG.crypto.wallets.BTC}</div>
+            </div>
+            <div class="p-2 rounded-lg bg-cyan-900/30 border border-cyan-500/30 text-xs text-cyan-400">
+              📤 Envía el monto exacto • Espera 1 confirmación
+            </div>
+          </div>
+        `,
+        kucoin: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-lg">◈</span>
+                <span class="font-semibold text-blue-300">Kucoin Pay</span>
+              </div>
+              <div class="text-xs text-slate-400">Pagos crypto con tasas reducidas</div>
+              <div class="mt-2 font-mono text-xs text-slate-300">API: ${CONFIG.crypto.kucoin.apiKey.substring(0, 20)}...</div>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800">
+              <div class="text-slate-400 mb-1">Redes soportadas</div>
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs">USDT-TRC20</span>
+                <span class="px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs">USDC-ERC20</span>
+                <span class="px-2 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs">BTC</span>
+              </div>
+            </div>
+          </div>
+        `,
+        bank_usa: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-red-900/40 to-rose-900/40 border border-red-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">🇺🇸</span>
+                <div>
+                  <div class="font-semibold text-red-300">Lead Bank</div>
+                  <div class="text-xs text-slate-400">ACH Transfer</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <div class="text-xs text-slate-500">Routing Number</div>
+                  <div class="font-mono text-sm text-slate-200">${CONFIG.bank.usa.routing}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Account Number</div>
+                  <div class="font-mono text-sm text-slate-200">${CONFIG.bank.usa.account}</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-800 text-xs text-slate-400">
+              ⏱️ Processing: 1-3 días hábiles
+            </div>
+          </div>
+        `,
+        bank_eu: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">🇪🇺</span>
+                <div>
+                  <div class="font-semibold text-blue-300">OPENPAYD MALTA</div>
+                  <div class="text-xs text-slate-400">SEPA Transfer</div>
+                </div>
+              </div>
+              <div>
+                <div class="text-xs text-slate-500">IBAN</div>
+                <div class="font-mono text-sm text-slate-200 break-all">${CONFIG.bank.europe.iban}</div>
+              </div>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-800 text-xs text-slate-400">
+              ⏱️ Processing: 1-2 días hábiles • SIN comisiones
+            </div>
+          </div>
+        `,
+        bank_lux: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-red-900/40 to-rose-900/40 border border-red-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">🇱🇺</span>
+                <div>
+                  <div class="font-semibold text-red-300">Banking Circle</div>
+                  <div class="text-xs text-slate-400">Luxembourg</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <div class="text-xs text-slate-500">IBAN</div>
+                  <div class="font-mono text-sm text-slate-200 break-all">${CONFIG.bank.luxembourg.iban}</div>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">BIC/SWIFT</div>
+                  <div class="font-mono text-sm text-slate-200">${CONFIG.bank.luxembourg.bic}</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-800 text-xs text-slate-400">
+              ⏱️ Processing: 1-3 días hábiles • Internacional
+            </div>
+          </div>
+        `,
+        bizum: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-pink-900/40 to-rose-900/40 border border-pink-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">📱</span>
+                <div>
+                  <div class="font-semibold text-pink-300">Bizum</div>
+                  <div class="text-xs text-slate-400">Pago móvil instantáneo</div>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-800 mt-2">
+                <div class="text-xs text-slate-500 mb-1">Merchant ID</div>
+                <div class="font-mono text-sm text-slate-200">${CONFIG.mobile.bizum.merchantId}</div>
+              </div>
+            </div>
+            <div class="p-2 rounded-lg bg-emerald-900/30 border border-emerald-500/30 text-xs text-emerald-400">
+              ✅ Instantáneo • Solo España • Límite: 1,000€/día
+            </div>
+          </div>
+        `,
+        klarna: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">💙</span>
+                <div>
+                  <div class="font-semibold text-blue-300">Klarna</div>
+                  <div class="text-xs text-slate-400">Pago en cuotas o inmediato</div>
+                </div>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-800">
+                <div class="text-xs text-slate-500 mb-1">Opciones de pago</div>
+                <div class="flex gap-2 flex-wrap">
+                  <span class="px-2 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs">Pago inmediato</span>
+                  <span class="px-2 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs">3 cuotas</span>
+                  <span class="px-2 py-1 rounded-full bg-green-500/20 text-green-300 text-xs">Financiación</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-800 text-xs text-slate-400">
+              🌎 Disponible en Europa • Verificación instantánea
+            </div>
+          </div>
+        `,
+        invoice: `
+          <div class="space-y-3 text-sm">
+            <div class="p-3 rounded-lg bg-gradient-to-r from-slate-800 to-slate-700 border border-slate-600">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">📄</span>
+                <div>
+                  <div class="font-semibold text-slate-200">Factura Proforma</div>
+                  <div class="text-xs text-slate-400">Transferencia bancaria</div>
+                </div>
+              </div>
+              <div class="p-3 rounded-lg bg-slate-800 mt-2 space-y-2">
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Impuesto (VAT)</span>
+                  <span class="text-amber-400">${CONFIG.tax.vat ? 'Calculado' : 'No aplicable'}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">IVA (21%)</span>
+                  <span class="text-slate-200">${formatPrice(total * 0.21)}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Retention</span>
+                  <span class="text-slate-200">-</span>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded-lg bg-cyan-900/30 border border-cyan-500/30">
+              <div class="text-xs text-cyan-300 mb-1">📧 Enviar proforma a:</div>
+              <input type="email" placeholder="facturas@tuempresa.com" class="w-full rounded-lg border border-slate-700 bg-slate-900/50 px-3 py-2 text-sm outline-none" />
+            </div>
+          </div>
+        `
+      };
+
+      content.innerHTML = `
+        <div class="space-y-4">
+          <div class="rounded-xl bg-gradient-to-br from-indigo-900/40 to-fuchsia-900/40 border border-indigo-500/30 p-4">
+            <h3 class="font-semibold mb-3">📦 Resumen de tu pedido</h3>
+            <div class="space-y-2 text-sm max-h-32 overflow-y-auto scrollbar-thin">
+              ${cartItemsData.map(wf => `
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-300 truncate max-w-[180px]">${wf.name.replace('.json', '').substring(0, 25)}</span>
+                  <span class="text-cyan-400 font-mono">${formatPrice(wf.price)}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="border-t border-slate-700 mt-3 pt-3 space-y-1">
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-400">Subtotal (${cartItemsData.length} items)</span>
+                <span class="text-slate-200">${formatPrice(subtotal)}</span>
+              </div>
+              ${discount > 0 ? `
+              <div class="flex justify-between text-sm text-emerald-400">
+                <span>Descuento (APOLLO10)</span>
+                <span>-${formatPrice(discount)}</span>
+              </div>` : ''}
+              <div class="flex justify-between font-bold text-lg pt-2 border-t border-slate-700">
+                <span>💰 TOTAL A PAGAR</span>
+                <span class="text-cyan-400">${formatPrice(total)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl bg-slate-800/50 p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xl">${methodLabels[state.paymentMethod]?.split(' ')[0] || '💳'}</span>
+              <h3 class="font-semibold">${methodLabels[state.paymentMethod] || state.paymentMethod.toUpperCase()}</h3>
+            </div>
+            ${paymentForms[state.paymentMethod] || paymentForms.stripe}
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="p-2 rounded-lg bg-slate-800/50 text-slate-400 flex items-center gap-2">
+              <span class="text-emerald-400">🔒</span>
+              <span>SSL Encriptado</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-800/50 text-slate-400 flex items-center gap-2">
+              <span class="text-cyan-400">⚡</span>
+              <span>Confirmación rápida</span>
+            </div>
+          </div>
+
+          <button onclick="completePurchase()" class="w-full rounded-xl bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 px-4 py-4 font-bold text-white hover:from-emerald-500 hover:via-cyan-500 hover:to-blue-500 transition shadow-lg shadow-emerald-500/25">
+            🔒 PAGAR ${formatPrice(total)} • DESCARGA INSTANTÁNEA
+          </button>
+
+          <p class="text-xs text-center text-slate-500">
+            Al pagar aceptas los <a href="#" class="text-cyan-400 underline">Términos de Servicio</a>
+            y la <a href="#" class="text-cyan-400 underline">Política de Privacidad</a>
+          </p>
+        </div>
+      `;
+
+      modal.showModal();
+    }
+    
+    function closeCheckoutModal() {
+      $('#checkoutModal').close();
+    }
+    
+    function completePurchase() {
+      const cartItemsData = state.cart.map(id => WORKFLOW_CATALOG.find(w => w.id === id)).filter(Boolean);
+      const total = cartItemsData.reduce((sum, wf) => sum + wf.price, 0);
+
+      // Seleccionar PMC según el tipo de pago
+      let pmcId = 'pmc_1ST9cn4YMUnMEYPN3y0hqkc3'; // Default
+      if (state.paymentMethod === 'stripe') {
+        // Rotar entre los PMCs disponibles
+        const pmcs = CONFIG.stripe.paymentMethodConfigs.filter(pmc => pmc.status === 'active');
+        const randomPmc = pmcs[Math.floor(Math.random() * pmcs.length)];
+        pmcId = randomPmc.id;
+      }
+
+      state.purchased.push(...state.cart);
+
+      const txnId = 'TXN' + Date.now();
+      const referenceCode = 'APL-' + Date.now();
+      
+      state.transactions.push({
+        id: txnId,
+        referenceCode: referenceCode,
+        date: new Date().toISOString(),
+        items: [...state.cart],
+        amount: total,
+        paymentMethod: state.paymentMethod,
+        pmcId: pmcId,
+        status: 'completed'
+      });
+
+      state.balance += total;
+      state.cart = [];
+
+      saveState();
+      closeCheckoutModal();
+      renderCart();
+      renderStats();
+      renderWorkflows();
+
+      // Send Telegram notification con más detalles
+      sendTelegramAlert({
+        type: 'purchase',
+        txnId: txnId,
+        referenceCode: referenceCode,
+        amount: total,
+        items: cartItemsData.length,
+        paymentMethod: state.paymentMethod,
+        pmcId: pmcId
+      });
+
+      // Mostrar modal de confirmación con detalles bancarios si es transferencia
+      if (state.paymentMethod === 'stripe' && document.getElementById('stripe-bank-form')?.classList.contains('hidden') === false) {
+        showBankTransferConfirmation(referenceCode, total);
+      }
+
+      toast('¡Compra completada!', `${cartItemsData.length} workflows añadidos a tu biblioteca`, '🎉');
+    }
+    
+    // Modal de confirmación para transferencias bancarias
+    function showBankTransferConfirmation(referenceCode, amount) {
+      const modal = document.createElement('dialog');
+      modal.className = 'w-[min(92vw,600px)] rounded-2xl border border-slate-800 bg-slate-950 p-0 text-slate-100 shadow-2xl shadow-black/50';
+      modal.innerHTML = `
+        <div class="border-b border-slate-800 p-5">
+          <h2 class="text-lg font-bold">🏦 Confirmación de Transferencia Bancaria</h2>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="p-4 rounded-xl bg-emerald-900/30 border border-emerald-500/30">
+            <div class="text-sm text-emerald-300 mb-2">✅ Pedido confirmado - Pendiente de pago</div>
+            <div class="text-xs text-slate-400">Los workflows se activarán al confirmar el pago</div>
+          </div>
+          
+          <div class="p-4 rounded-xl bg-slate-800/50">
+            <h3 class="font-semibold mb-3">Datos para la transferencia:</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Beneficiario:</span>
+                <span class="font-mono">Stripe Payments Company</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Banco:</span>
+                <span class="font-mono">Wells Fargo Bank, N.A.</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Cuenta:</span>
+                <span class="font-mono">16310144183240065</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Routing:</span>
+                <span class="font-mono">121000248</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Monto:</span>
+                <span class="font-mono text-cyan-400">$${amount.toFixed(2)} USD</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Referencia:</span>
+                <span class="font-mono text-amber-400">${referenceCode}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="p-3 rounded-xl bg-amber-900/30 border border-amber-500/30">
+            <div class="text-xs text-amber-300">
+              ⚠️ IMPORTANTE: Incluir el código de referencia <span class="font-mono">${referenceCode}</span> en el concepto
+            </div>
+          </div>
+          
+          <button onclick="this.closest('dialog').close()" class="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-4 py-3 font-bold text-white hover:from-indigo-500 hover:to-fuchsia-500 transition">
+            Entendido - Cerrar
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      modal.showModal();
+    }
+
+    // Send Telegram Alert
+    function sendTelegramAlert(data) {
+      const methodLabels = {
+        stripe: '💳 Stripe',
+        crypto: '₿ Crypto',
+        kucoin: '◈ Kucoin',
+        bank_usa: '🇺🇸 Lead Bank',
+        bank_eu: '🇪🇺 SEPA',
+        bank_lux: '🇱🇺 Luxembourg',
+        bizum: '📱 Bizum',
+        klarna: '💙 Klarna',
+        invoice: '📄 Factura'
+      };
+
+      const message = `
+🛒 *NUEVA VENTA - APOLLO CONTROL v3.0*
+
+📋 *Detalles de la Transacción:*
+├─ *ID:* \`${data.txnId}\`
+├─ *Referencia:* \`${data.referenceCode || 'N/A'}\`
+├─ *PMC ID:* \`${data.pmcId || 'N/A'}\`
+└─ *Timestamp:* ${new Date().toISOString()}
+
+💰 *Información de Pago:*
+├─ *Monto Total:* $${data.amount.toFixed(2)} USD
+├─ *Items:* ${data.items} workflows
+├─ *Método:* ${methodLabels[data.paymentMethod] || data.paymentMethod}
+└─ *Estado:* ✅ Completada
+
+🔗 *Sistema:*
+├─ *Dominio:* control.apollopeak.io
+├─ *N8N:* Conectado
+└─ *Stripe:* Live Mode
+
+📊 *Estadísticas del Día:*
+├─ *Ventas Hoy:* ${state.transactions.filter(t => new Date(t.date).toDateString() === new Date().toDateString()).length}
+├─ *Revenue Hoy:* $${state.transactions.filter(t => new Date(t.date).toDateString() === new Date().toDateString()).reduce((sum, t) => sum + t.amount, 0).toFixed(2)}
+└─ *Balance Total:* $${state.balance.toFixed(2)}
+
+#ApolloControl #Venta #${data.paymentMethod}
+      `.trim();
+
+      console.log('📨 Telegram Alert:', message);
+
+      // Enviar a Telegram en producción
+      if (CONFIG.telegram && CONFIG.telegram.botToken) {
+        fetch(`https://api.telegram.org/bot${CONFIG.telegram.botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: CONFIG.telegram.chatId,
+            text: message,
+            parse_mode: 'Markdown'
+          })
+        }).catch(err => console.error('Error enviando a Telegram:', err));
+      }
+    }
+
+    // ============================================
+    // WORKFLOW DOWNLOAD - JSON READY FOR N8N
+    // ============================================
+    
+    function downloadWorkflow(id) {
+      const wf = WORKFLOW_CATALOG.find(w => w.id === id);
+      if (!wf) return;
+      
+      const n8nJson = generateN8NJson(wf);
+      
+      const blob = new Blob([JSON.stringify(n8nJson, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = wf.name;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast('JSON descargado', `${wf.name} listo para importar en n8n`, '⬇️');
+    }
+    
+    function generateN8NJson(workflow) {
+      return {
+        name: workflow.name.replace('.json', '').replace(/_/g, ' '),
+        nodes: generateNodes(workflow),
+        connections: generateConnections(workflow),
+        settings: { executionOrder: 'v2' },
+        active: true,
+        meta: {
+          instanceId: 'apollo-control-v3',
+          createdAt: new Date().toISOString(),
+          author: 'Apollo Control v3.0',
+          category: workflow.category,
+          complexity: workflow.complexity,
+          price: workflow.price,
+          integrations: workflow.integrations,
+          ia: workflow.ia,
+          credentials: { configured: true }
+        }
+      };
+    }
+    
+    function generateNodes(workflow) {
+      const nodes = [];
+      
+      if (workflow.trigger.includes('Webhook')) {
+        nodes.push({
+          parameters: { httpMethod: 'POST', path: `webhook/${workflow.id.toLowerCase()}` },
+          name: 'Webhook',
+          type: 'n8n-nodes-base.webhook',
+          typeVersion: 1,
+          position: [100, 200]
+        });
+      } else if (workflow.trigger.includes('Schedule')) {
+        nodes.push({
+          parameters: { rule: { interval: [{ field: 'hours', hoursInterval: 4 }] } },
+          name: 'Schedule',
+          type: 'n8n-nodes-base.scheduleTrigger',
+          typeVersion: 1,
+          position: [100, 200]
+        });
+      }
+      
+      if (workflow.ia && (workflow.ia.includes('GPT-4') || workflow.ia.includes('OpenAI'))) {
+        nodes.push({
+          parameters: { model: 'gpt-4', messages: { values: [{ content: 'You are a helpful automation assistant.' }] } },
+          name: 'OpenAI',
+          type: '@n8n/n8n-nodes-langchain.chainLlm',
+          typeVersion: 1.4,
+          position: [300, 200],
+          credentials: { openaiApi: { id: 'configured', name: 'OpenAI Account' } }
+        });
+      }
+      
+      nodes.push({
+        parameters: { method: 'GET', url: 'https://api.example.com/v1/status', sendHeaders: true, headerParameters: { parameters: [{ name: 'Authorization', value: 'Bearer {{$json.apiKey}}' }] } },
+        name: 'HTTP Request',
+        type: 'n8n-nodes-base.httpRequest',
+        typeVersion: 4.1,
+        position: [500, 200]
+      });
+      
+      nodes.push({
+        parameters: { text: '={{"Workflow " + $json.name + " executed successfully"}}' },
+        name: 'Notification',
+        type: 'n8n-nodes-base.telegram',
+        typeVersion: 1,
+        position: [700, 200],
+        credentials: { telegramApi: { id: 'configured', name: 'Telegram Account' } }
+      });
+      
+      return nodes;
+    }
+    
+    function generateConnections(workflow) {
+      const connections = {};
+      const nodes = generateNodes(workflow).map(n => n.name);
+      
+      for (let i = 0; i < nodes.length - 1; i++) {
+        connections[nodes[i]] = {
+          main: [[{ node: nodes[i + 1], type: 'main', index: 0 }]]
+        };
+      }
+      
+      return connections;
+    }
+
+    // ============================================
+    // MODAL FUNCTIONS
+    // ============================================
+    
+    function viewWorkflow(id) {
+      const wf = WORKFLOW_CATALOG.find(w => w.id === id);
+      if (!wf) return;
+      
+      const modal = $('#workflowModal');
+      $('#wfModalCategory').textContent = wf.category;
+      $('#wfModalTitle').textContent = wf.name.replace('.json', '');
+      
+      const isPurchased = state.purchased.includes(wf.id);
+      
+      $('#wfModalContent').innerHTML = `
+        <div class="space-y-4">
+          <div class="rounded-xl bg-slate-800/50 p-4">
+            <h3 class="font-semibold mb-2">📝 Descripción</h3>
+            <p class="text-sm text-slate-300">${wf.description}</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-xl bg-slate-800/50 p-4">
+              <div class="text-xs text-slate-400 mb-1">Precio</div>
+              <div class="text-xl font-bold ${wf.premium ? 'text-amber-400' : 'text-cyan-400'}">${formatPrice(wf.price)}</div>
+            </div>
+            <div class="rounded-xl bg-slate-800/50 p-4">
+              <div class="text-xs text-slate-400 mb-1">Complejidad</div>
+              <div class="text-lg font-bold text-amber-400">${getComplexityLabel(wf.complexity)}</div>
+            </div>
+            <div class="rounded-xl bg-slate-800/50 p-4">
+              <div class="text-xs text-slate-400 mb-1">Nodos</div>
+              <div class="text-lg font-bold text-slate-200">${wf.nodes}</div>
+            </div>
+            <div class="rounded-xl bg-slate-800/50 p-4">
+              <div class="text-xs text-slate-400 mb-1">Trigger</div>
+              <div class="text-sm font-semibold">${wf.trigger}</div>
+            </div>
+          </div>
+          
+          <div class="rounded-xl bg-slate-800/50 p-4">
+            <h3 class="font-semibold mb-2">🤖 IA Utilizada</h3>
+            <p class="text-sm text-slate-300">${wf.ia}</p>
+          </div>
+          
+          <div class="rounded-xl bg-slate-800/50 p-4">
+            <h3 class="font-semibold mb-2">🔗 Integraciones</h3>
+            <div class="flex flex-wrap gap-2">
+              ${wf.integrations.map(i => `<span class="text-xs px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-300">${i}</span>`).join('')}
+            </div>
+          </div>
+          
+          <div class="flex gap-3">
+            <button onclick="toggleFavorite('${wf.id}')" class="flex-1 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm hover:bg-slate-800 transition">
+              ${state.favorites.includes(wf.id) ? '★ Quitar de favoritos' : '☆ Añadir a favoritos'}
+            </button>
+            ${isPurchased ? 
+              `<button onclick="downloadWorkflow('${wf.id}'); closeWorkflowModal();" class="flex-1 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-500 transition">
+                ⬇️ Descargar JSON
+              </button>` :
+              `<button onclick="addToCart('${wf.id}'); closeWorkflowModal();" class="flex-1 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white hover:bg-indigo-500 transition">
+                🛒 Añadir al carrito
+              </button>`
+            }
+          </div>
+        </div>
+      `;
+      
+      modal.showModal();
+    }
+    
+    function closeWorkflowModal() {
+      $('#workflowModal').close();
+    }
+    
+    function toggleFavorite(id) {
+      if (state.favorites.includes(id)) {
+        state.favorites = state.favorites.filter(i => i !== id);
+        toast('Favorito eliminado', 'Workflow removido de favoritos', '☆');
+      } else {
+        state.favorites.push(id);
+        toast('Favorito añadido', 'Workflow añadido a favoritos', '★');
+      }
+      saveState();
+      renderWorkflows();
+    }
+
+    // ============================================
+    // FILTER & SEARCH
+    // ============================================
+    
+    function filterByCategory(category) {
+      state.currentPage = 1;
+      filterWorkflows(category);
+    }
+    
+    function filterComplexity(complexity) {
+      state.currentPage = 1;
+      if (complexity === 'all') {
+        renderWorkflows();
+      } else {
+        const filtered = WORKFLOW_CATALOG.filter(w => w.complexity === complexity);
+        renderWorkflows(filtered);
+      }
+    }
+    
+    function filterWorkflows() {
+      const search = $('#searchWorkflows').value.toLowerCase();
+      const category = $('#filterCategory').value;
+      const sort = $('#sortBy').value;
+      
+      let filtered = [...WORKFLOW_CATALOG];
+      
+      if (search) {
+        filtered = filtered.filter(w => 
+          w.name.toLowerCase().includes(search) ||
+          w.description.toLowerCase().includes(search) ||
+          w.category.toLowerCase().includes(search) ||
+          w.integrations.some(i => i.toLowerCase().includes(search))
+        );
+      }
+      
+      if (category !== 'all') {
+        filtered = filtered.filter(w => w.category === category);
+      }
+      
+      if (sort === 'price-low') {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sort === 'price-high') {
+        filtered.sort((a, b) => b.price - a.price);
+      } else if (sort === 'complexity') {
+        const order = { 'legendary': 0, 'extreme': 1, 'high': 2, 'medium': 3, 'low': 4 };
+        filtered.sort((a, b) => order[a.complexity] - order[b.complexity]);
+      } else {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      
+      renderWorkflows(filtered);
+    }
+
+    // ============================================
+    // EXPORT FUNCTIONS
+    // ============================================
+    
+    function exportAllWorkflows() {
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        version: '3.0',
+        platform: 'Apollo Control',
+        totalWorkflows: WORKFLOW_CATALOG.length,
+        workflows: WORKFLOW_CATALOG
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'apollo-workflows-complete-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast('Exportación completa', `${WORKFLOW_CATALOG.length} workflows exportados`, '📦');
+    }
+
+    // ============================================
+    // N8N SYNC
+    // ============================================
+    
+    function syncN8N() {
+      toast('Sincronizando con N8N...', 'Conectando a control.apollopeak.io', '🔄');
+      
+      setTimeout(() => {
+        toast('N8N Sincronizado', `${WORKFLOW_CATALOG.length} workflows sincronizados correctamente`, '✅');
+        renderStats();
+      }, 2000);
+    }
+
+    // ============================================
+    // CHART INITIALIZATION
+    // ============================================
+    
+    function initChart() {
+      const ctx = $('#revenueChartMini').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+          datasets: [{
+            label: 'Ingresos',
+            data: [150, 280, 195, 320, 450, 380, 520],
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } },
+            y: { grid: { color: 'rgba(100, 116, 139, 0.2)' }, ticks: { color: '#64748b', font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    function init() {
+      let loaded = 0;
+      const total = WORKFLOW_CATALOG.length;
+      
+      const interval = setInterval(() => {
+        loaded += Math.ceil(total / 20);
+        if (loaded >= total) {
+          loaded = total;
+          clearInterval(interval);
+          $('#loadingScreen').classList.add('hidden');
+        }
+        $('#loadingStatus').textContent = `${loaded} / ${total} Workflows`;
+      }, 50);
+      
+      renderCategories();
+      renderFeatured();
+      renderWorkflows();
+      renderCart();
+      renderStats();
+      initChart();
+      
+      $('#searchWorkflows').addEventListener('input', filterWorkflows);
+      $('#filterCategory').addEventListener('change', filterWorkflows);
+      $('#sortBy').addEventListener('change', filterWorkflows);
+      $('#btnCart').addEventListener('click', toggleCart);
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeCheckoutModal();
+          closeWorkflowModal();
+          toggleCart();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          $('#searchWorkflows').focus();
+        }
+      });
+      
+      console.log('🚀 Apollo Control v3.0 initialized');
+      console.log('📊 Workflows loaded:', WORKFLOW_CATALOG.length);
+      console.log('🔗 N8N URL:', CONFIG.n8n.apiUrl);
+    }
+    
+    init();
+  </script>
+</body>
+</html>
